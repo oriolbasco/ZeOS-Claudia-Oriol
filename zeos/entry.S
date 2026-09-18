@@ -68,11 +68,6 @@
 	outb %al, $0x20;
 
 entry(clock_handler)
-	push $__USER_DS
-	push %EBP // User stack address
-	pushfl
-	push $__USER_CS
-	push 4(%EBP) // User return address
 	SAVE_ALL
 	
 	call clock_routine
@@ -83,12 +78,6 @@ entry(clock_handler)
 	
 	
 entry(keyboard_handler)
-	push $__USER_DS
-	push 	%EBP // User stack address
-	pushfl
-	push 	$__USER_CS
-	push 	4(%EBP) // User return address
-	
 	SAVE_ALL
 
 	call keyboard_routine
