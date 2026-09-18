@@ -5,7 +5,6 @@
 #include <asm.h>
 #include <segment.h>
 
-
 /**************************************************/
 /**** Save & Restore ******************************/
 /**                                              **/
@@ -51,3 +50,51 @@
       movl %edx, %ds;           \
       movl %edx, %es
 
+#define RESTORE_ALL \
+	popl	%edx; \
+	popl	%ecx; \
+	popl	%ebx; \
+	popl	%esi; \
+	popl	%edi; \
+	popl	%ebp; \
+	popl	%eax; \
+	popl	%ds; \
+	popl	%es; \
+	popl	%fs; \
+	popl	%gs;  
+	
+#define EOI \
+	movb $0x20, %al; \
+	outb %al, $0x20;
+
+entry(clock_handler)
+	push $__USER_DS
+	push %EBP // User stack address
+	pushfl
+	push $__USER_CS
+	push 4(%EBP) // User return address
+	SAVE_ALL
+	
+	call clock_routine
+	
+	EOI
+	RESTORE_ALL
+	iret
+	
+	
+entry(keyboard_handler)
+	push $__USER_DS
+	push 	%EBP // User stack address
+	pushfl
+	push 	$__USER_CS
+	push 	4(%EBP) // User return address
+	
+	SAVE_ALL
+
+	call keyboard_routine
+	
+	EOI
+	RESTORE_ALL
+	iret
+	
+	

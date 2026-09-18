@@ -73,6 +73,24 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
   idt[vector].highOffset      = highWord((DWord)handler);
 }
 
+void keyboard_routine()
+{
+	unsigned char c_inp = inb(0x60);
+	if ((c_inp & 0b00000001) == 1) 
+	{
+		unsigned char c_out = char_map[(c_inp & 0b1111110)];
+		if (c_out < 'a' && c_out > '9') c_out = 'C';
+		printc_xy(100,100,c_out);
+	}
+		
+}
+
+/*
+void clock_routine()
+{
+	
+}
+*/
 
 void setIdt()
 {
@@ -81,7 +99,9 @@ void setIdt()
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
   
   set_handlers();
-
+	
+  //setInterruptHandler(32, clock_handler, 0);	
+  setInterruptHandler(33, keyboard_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
   set_idt_reg(&idtR);
