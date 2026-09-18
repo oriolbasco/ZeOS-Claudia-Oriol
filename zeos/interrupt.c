@@ -12,14 +12,16 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
+void keyboard_handler();
+
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',
-  '7','8','9','0','\'','ก','\0','\0',
+  '7','8','9','0','\'','ยก','\0','\0',
   'q','w','e','r','t','y','u','i',
   'o','p','`','+','\0','\0','a','s',
-  'd','f','g','h','j','k','l','๑',
-  '\0','บ','\0','็','z','x','c','v',
+  'd','f','g','h','j','k','l','รฑ',
+  '\0','ยบ','\0','รง','z','x','c','v',
   'b','n','m',',','.','-','\0','*',
   '\0','\0','\0','\0','\0','\0','\0','\0',
   '\0','\0','\0','\0','\0','\0','\0','7',
@@ -76,13 +78,14 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 void keyboard_routine()
 {
 	unsigned char c_inp = inb(0x60);
-	if ((c_inp & 0b00000001) == 1) 
+	if ((c_inp & 0b10000000) == 0) 
 	{
-		unsigned char c_out = char_map[(c_inp & 0b1111110)];
+		unsigned char c_out = char_map[(c_inp & 0b01111111)];
+
 		if (c_out < 'a' && c_out > '9') c_out = 'C';
-		printc_xy(100,100,c_out);
+
+		printc_xy(0,0,c_out);
 	}
-		
 }
 
 /*
