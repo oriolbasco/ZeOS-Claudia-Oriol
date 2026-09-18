@@ -7,12 +7,17 @@
 #include <hardware.h>
 #include <io.h>
 
+#include <stdio.h>
+
 #include <zeos_interrupt.h>
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
+unsigned int clkCount = 0;
+
 void keyboard_handler();
+void clock_handler();
 
 char char_map[] =
 {
@@ -84,16 +89,15 @@ void keyboard_routine()
 
 		if (c_out < 'a' && c_out > '9') c_out = 'C';
 
-		printc_xy(0,0,c_out);
+		printc_xy(75,0,c_out);
 	}
 }
 
-/*
 void clock_routine()
 {
-	
+  ++clkCount;
+  // implementar algo per passar de unsigned int del clkCount a *char
 }
-*/
 
 void setIdt()
 {
@@ -103,7 +107,7 @@ void setIdt()
   
   set_handlers();
 	
-  //setInterruptHandler(32, clock_handler, 0);	
+  setInterruptHandler(32, clock_handler, 0);	
   setInterruptHandler(33, keyboard_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
