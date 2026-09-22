@@ -15,8 +15,6 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
-unsigned int clkCount = 0;
-
 void keyboard_handler();
 void clock_handler();
 
@@ -90,16 +88,13 @@ void keyboard_routine()
 
 		if (c_out < 'a' && c_out > '9') c_out = 'C';
 
-		printc_xy(75,0,c_out);
+		printc_xy(76,0,c_out);
 	}
 }
 
 void clock_routine()
 {
-  ++clkCount;
-  char value[80];
-  itoa(clkCount,value);
-  printk(value);
+  zeos_show_clock();
 }
 
 void setIdt()
