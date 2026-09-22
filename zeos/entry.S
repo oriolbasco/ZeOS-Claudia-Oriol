@@ -86,5 +86,5 @@ ENTRY(clock_handler)
 	iret
 
 ENTRY(page_fault_handler)
-	
+	SAVE_ALL
 	

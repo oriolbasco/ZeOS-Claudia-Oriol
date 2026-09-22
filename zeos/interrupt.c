@@ -7,6 +7,7 @@
 #include <hardware.h>
 #include <io.h>
 #include <libc.h>
+#include <user.h>
 
 #include <stdio.h>
 
@@ -97,7 +98,7 @@ void clock_routine()
   zeos_show_clock();
 }
 
-void page_fault_routine()
+void page_fault_routine(sys_stack st)
 {
   while(1);
 }

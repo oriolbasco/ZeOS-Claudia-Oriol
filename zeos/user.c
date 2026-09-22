@@ -3,6 +3,24 @@
 char buff[24];
 
 int pid;
+struct sys_stack{
+  register edx;
+  register ecx;
+  register ebx;
+  register esi;
+  register edi;
+  register ebp;
+  register eax;
+  register ds;
+  register es;
+  register fs;
+  register gs;
+  register eip;
+  register cs;
+  register eflags;
+  register oldesp;
+  register oldss;
+};
 
 int __attribute__ ((__section__(".text.main")))
   main(void)
