@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include <libc.h>
 
 #include <stdio.h>
 
@@ -96,7 +97,9 @@ void keyboard_routine()
 void clock_routine()
 {
   ++clkCount;
-  // implementar algo per passar de unsigned int del clkCount a *char
+  char value[80];
+  itoa(clkCount,value);
+  printk(value);
 }
 
 void setIdt()
