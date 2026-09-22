@@ -8,7 +8,7 @@
 #include <io.h>
 #include <libc.h>
 
-#include <stdio.h>
+//#include <stdio.h>
 
 #include <zeos_interrupt.h>
 
