@@ -102,6 +102,11 @@ void clock_routine()
   printk(value);
 }
 
+void page_fault_routine()
+{
+  while(1);
+}
+
 void setIdt()
 {
   /* Program interrups/exception service routines */

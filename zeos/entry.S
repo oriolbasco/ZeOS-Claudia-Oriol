@@ -84,4 +84,7 @@ ENTRY(clock_handler)
 	
 	RESTORE_ALL
 	iret
+
+ENTRY(page_fault_handler)
+	
 	
