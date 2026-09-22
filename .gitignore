@@ -1,0 +1,36 @@
+# Executables i fitxers binoculars
+*.out
+*.exe
+*.o
+*.obj
+*.s.o
+
+# Fitxers generats pel compilador / enllaçador
+*.elf
+*.bin
+*.hex
+*.map
+
+# Fitxers de depuració i profiling
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.gcda
+*.gcno
+*.gcov
+
+# Dependències generades automàticament
+*.d
+
+# Directoris típics de compilació/sortida
+build/
+bin/
+dist/
+
+# Directoris i fitxers de configuració de l'IDE/editor
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
