@@ -34,3 +34,13 @@ dist/
 *.swp
 *~
 .DS_Store
+
+*.o
+*.s
+*.out
+system
+user
+build
+bootsect
+zeos.bin
+bochsout.txt
