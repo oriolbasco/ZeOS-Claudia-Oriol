@@ -88,3 +88,15 @@ ENTRY(clock_handler)
 ENTRY(page_fault_handler)
 	SAVE_ALL
 	
+	movl %cr2, %eax // cr2 com a segon parametre la rutina
+	pushl %eax
+
+	movl %esp, %eax // punter a pila de sistema com a segon parametre
+	addl $4, %eax // saltem el primer parametre pusheat
+	pushl %eax
+
+	call page_fault_routine
+
+	addl $8, %esp // eliminem els dos parametres de la rutina
+	RESTORE_ALL 
+	iret

@@ -4,22 +4,24 @@ char buff[24];
 
 int pid;
 struct sys_stack{
-  register edx;
-  register ecx;
-  register ebx;
-  register esi;
-  register edi;
-  register ebp;
-  register eax;
-  register ds;
-  register es;
-  register fs;
-  register gs;
-  register eip;
-  register cs;
-  register eflags;
-  register oldesp;
-  register oldss;
+  unsigned int edx;
+  unsigned int ecx;
+  unsigned int ebx;
+  unsigned int esi;
+  unsigned int edi;
+  unsigned int ebp;
+  unsigned int eax;
+  unsigned int ds;
+  unsigned int es;
+  unsigned int fs;
+  unsigned int gs;
+  
+  unsigned int error_code;
+  unsigned int eip;
+  unsigned int cs;
+  unsigned int eflags;
+  unsigned int oldesp;
+  unsigned int oldss;
 };
 
 int __attribute__ ((__section__(".text.main")))

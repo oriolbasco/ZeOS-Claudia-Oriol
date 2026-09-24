@@ -98,8 +98,10 @@ void clock_routine()
   zeos_show_clock();
 }
 
-void page_fault_routine(sys_stack st)
+void page_fault_routine(sys_stack *st, unsigned int cr2)
 {
+  printk("\nProcess generates a PAGE FAULT exception at EIP: 0x");
+
   while(1);
 }
 
