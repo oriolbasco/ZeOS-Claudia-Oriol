@@ -9,7 +9,7 @@
 #include <libc.h>
 #include <user.h>
 
-#include <stdio.h>
+//#include <stdio.h>
 
 #include <zeos_interrupt.h>
 
