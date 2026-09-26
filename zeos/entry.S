@@ -85,7 +85,7 @@ ENTRY(clock_handler)
 	RESTORE_ALL
 	iret
 
-ENTRY(page_fault_handler)
+ENTRY(page_fault_handler_v2)
 	SAVE_ALL
 	
 	movl %cr2, %eax // cr2 com a segon parametre la rutina
@@ -95,8 +95,9 @@ ENTRY(page_fault_handler)
 	addl $4, %eax // saltem el primer parametre pusheat
 	pushl %eax
 
-	call page_fault_routine
+	call page_fault_routine_v2
 
 	addl $8, %esp // eliminem els dos parametres de la rutina
 	RESTORE_ALL 
+	addl $4, %esp // eliminem el codi d'error
 	iret

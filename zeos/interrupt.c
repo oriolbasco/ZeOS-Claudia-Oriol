@@ -7,9 +7,7 @@
 #include <hardware.h>
 #include <io.h>
 #include <libc.h>
-#include <user.h>
-
-//#include <stdio.h>
+#include <system.h>
 
 #include <zeos_interrupt.h>
 
@@ -18,6 +16,7 @@ Register    idtR;
 
 void keyboard_handler();
 void clock_handler();
+void page_fault_handler_v2();
 
 char char_map[] =
 {
@@ -98,9 +97,81 @@ void clock_routine()
   zeos_show_clock();
 }
 
-void page_fault_routine(sys_stack *st, unsigned int cr2)
+void page_fault_routine_v2(struct sys_stack *st, unsigned int cr2)
 {
+  char buff[80];
+
   printk("\nProcess generates a PAGE FAULT exception at EIP: 0x");
+  itoa(st->eip, buff);
+  printk(buff);
+
+  printk("\nOffending address (CR2): 0x");
+  itoa(cr2, buff); // adreça que ha provocat la falla
+  printk(buff);
+
+  printk("\nRegister edx: 0x");
+  itoa(st->edx, buff);
+  printk(buff);
+
+  printk("\nRegister ecx: 0x");
+  itoa(st->ecx, buff);
+  printk(buff);
+
+  printk("\nRegister ebx: 0x");
+  itoa(st->ebx, buff);
+  printk(buff);
+
+  printk("\nRegister esi: 0x");
+  itoa(st->esi, buff);
+  printk(buff);
+
+  printk("\nRegister edi: 0x");
+  itoa(st->edi, buff);
+  printk(buff);
+
+  printk("\nRegister ebp: 0x");
+  itoa(st->ebp, buff);
+  printk(buff);
+
+  printk("\nRegister eax: 0x");
+  itoa(st->eax, buff);
+  printk(buff);
+
+  printk("\nRegister ds: 0x");
+  itoa(st->ds, buff);
+  printk(buff);
+
+  printk("\nRegister es: 0x");
+  itoa(st->es, buff);
+  printk(buff);
+
+  printk("\nRegister fs: 0x");
+  itoa(st->fs, buff);
+  printk(buff);
+
+  printk("\nRegister gs: 0x");
+  itoa(st->gs, buff);
+  printk(buff);
+
+  printk("\nError code: 0x");
+  itoa(st->error_code, buff);
+  printk(buff);
+
+  printk("\nRegister cs: 0x");
+  itoa(st->cs, buff);
+  printk(buff);
+
+  printk("\nRegister eflags: 0x");
+  itoa(st->eflags, buff);
+  printk(buff);
+
+  printk("\nRegister oldesp: 0x");
+  itoa(st->oldesp, buff);
+  printk(buff);
+
+  printk("\nRegister oldss: 0x");
+  itoa(st->oldss, buff);
+  printk(buff);
 
   while(1);
 }
@@ -112,7 +183,8 @@ void setIdt()
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
   
   set_handlers();
-	
+
+	setInterruptHandler(14, page_fault_handler_v2, 0);
   setInterruptHandler(32, clock_handler, 0);	
   setInterruptHandler(33, keyboard_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
