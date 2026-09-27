@@ -30,3 +30,12 @@
 
  popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs;
  iret
+
+.globl my_page_fault_handler; .type my_page_fault_handler, @function; .align 0; my_page_fault_handler:
+ pushl %gs; pushl %fs; pushl %es; pushl %ds; pushl %eax; pushl %ebp; pushl %edi; pushl %esi; pushl %ebx; pushl %ecx; pushl %edx; movl $0x18, %edx; movl %edx, %ds; movl %edx, %es
+
+ pushl %esp
+ call my_page_fault_routine
+
+ popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs;
+ iret

@@ -131,6 +131,12 @@ a:
 
 
 
+.globl read_cr2; .type read_cr2, @function; .align 0; read_cr2:
+    movl %cr2, %eax
+    ret
+
+
+
 .globl write_cr0; .type write_cr0, @function; .align 0; write_cr0:
     pushl %ebp
     movl %esp, %ebp

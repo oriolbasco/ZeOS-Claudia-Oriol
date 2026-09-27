@@ -85,3 +85,11 @@ ENTRY(clock_handler)
 	RESTORE_ALL
 	iret
 	
+ENTRY(my_page_fault_handler)
+	SAVE_ALL
+	
+	pushl %esp //dir de top pila
+	call my_page_fault_routine
+	
+	RESTORE_ALL
+	iret
