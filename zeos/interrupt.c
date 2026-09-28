@@ -122,56 +122,57 @@ void clock_routine()
  */
 void my_page_fault_routine(struct sys_stack *st) 
 {   
-    printk("Process generates a PAGE FAULT exception at EIP: ");
-    itoa_hex(st->eip, buff); // eip es l'adreça on es provoca l'excepcio
-    printk(buff);
-    printk("\n");
-    
-    
-    int num = read_cr2(); // funcio implementada al hardware.S, cr2 es l'adreça a la que es volia saltar.
-    printk("Offending address: ");
-    itoa_hex(num, buff);
-    printk(buff);
-    printk("\n");
-    
-    printk("CPU Registers: ");
-    printk("\n");
-    itoa_hex(st->edx, buff);
-    printk("%edx: ");
-    printk(buff);
-    printk("\n");
-    
-    itoa_hex(st->ecx, buff);
-    printk("%ecx: ");
-    printk(buff);
-    printk("\n");
-    
-    itoa_hex(st->ebx, buff);
-    printk("%ebx: ");
-    printk(buff);
-    printk("\n");
-    
-    itoa_hex(st->esi, buff);
-    printk("%esi: ");
-    printk(buff);
-    printk("\n");
-    
-    itoa_hex(st->edi, buff);
-    printk("%edi: ");
-    printk(buff);
-    printk("\n");
-    
-    itoa_hex(st->ebp, buff);
-    printk("%ebp: ");
-    printk(buff);
-    printk("\n");
-    
-    itoa_hex(st->eax, buff);
-    printk("%eax: ");
-    printk(buff);
-    printk("\n");
+  printk("\n");
+  printk("Process generates a PAGE FAULT exception at EIP: ");
+  itoa_hex(st->eip, buff); // eip es l'adreça on es provoca l'excepcio
+  printk(buff);
+  printk("\n");
 
-    while(1);
+
+  int num = read_cr2(); // funcio implementada al hardware.S, cr2 es l'adreça a la que es volia saltar.
+  printk("Offending address: ");
+  itoa_hex(num, buff);
+  printk(buff);
+  printk("\n");
+
+  printk("CPU Registers: ");
+  printk("\n");
+  itoa_hex(st->edx, buff);
+  printk("%edx: ");
+  printk(buff);
+  printk("\n");
+
+  itoa_hex(st->ecx, buff);
+  printk("%ecx: ");
+  printk(buff);
+  printk("\n");
+
+  itoa_hex(st->ebx, buff);
+  printk("%ebx: ");
+  printk(buff);
+  printk("\n");
+
+  itoa_hex(st->esi, buff);
+  printk("%esi: ");
+  printk(buff);
+  printk("\n");
+
+  itoa_hex(st->edi, buff);
+  printk("%edi: ");
+  printk(buff);
+  printk("\n");
+
+  itoa_hex(st->ebp, buff);
+  printk("%ebp: ");
+  printk(buff);
+  printk("\n");
+
+  itoa_hex(st->eax, buff);
+  printk("%eax: ");
+  printk(buff);
+  printk("\n");
+
+  while(1);
 }
 
 void setIdt()
