@@ -7,8 +7,6 @@
 #include <hardware.h>
 #include <io.h>
 #include <libc.h>
-//#include <stdio.h>
-
 #include <zeos_interrupt.h>
 #include <zeos_mm.h>
 
@@ -17,24 +15,25 @@ Register    idtR;
 
 char buff[256];
 
-struct syst_stack {
-  int edx;
-  int ecx;
-  int ebx;
-  int esi;
-  int edi;
-  int ebp;
-  int eax;
-  int ds;
-  int es;
-  int fs;
-  int gs;
-  int error_code;
-  int eip;
-  int cs;
-  int eflags;
-  int esp;
-  int ss;
+struct sys_stack 
+{
+  unsigned int edx;
+  unsigned int ecx;
+  unsigned int ebx;
+  unsigned int esi;
+  unsigned int edi;
+  unsigned int ebp;
+  unsigned int eax;
+  unsigned int ds;
+  unsigned int es;
+  unsigned int fs;
+  unsigned int gs;
+  unsigned int error_code;
+  unsigned int eip;
+  unsigned int cs;
+  unsigned int eflags;
+  unsigned int esp;
+  unsigned int ss;
 };
 
 char char_map[] =
@@ -116,55 +115,62 @@ void clock_routine()
   zeos_show_clock();
 }
 
-//hay q imprimir mensaje + EIP(dirección de la instrucción que provocó el Page Fault) + cr2(dirección de memoria a la que esa instrucción intentó acceder) + CPU registers + while;
-void my_page_fault_routine(struct syst_stack *contexto) {
-    //contexto es un apuntador al tope de la pila
-    
+
+/**
+ * @brief rutina per la excepcio de la page. Mostra eip, el registre cr2 i els registres de la cpu. Entra en un bucle infinit.
+ * @param st punter al struct de la pila de sistema
+ */
+void my_page_fault_routine(struct sys_stack *st) 
+{   
     printk("Process generates a PAGE FAULT exception at EIP: ");
-    itoa_hex(contexto->eip, buff); //guarda el entero en un buffer.
+    itoa_hex(st->eip, buff); // eip es l'adreça on es provoca l'excepcio
     printk(buff);
     printk("\n");
     
     
-    int num = read_cr2(); //func en assembly;
+    int num = read_cr2(); // funcio implementada al hardware.S, cr2 es l'adreça a la que es volia saltar.
     printk("Offending address: ");
-    itoa_hex(num, buff); //guarda el entero en un buffer.
+    itoa_hex(num, buff);
     printk(buff);
     printk("\n");
     
     printk("CPU Registers: ");
     printk("\n");
-    itoa_hex(contexto->edx, buff); //guarda el entero en un buffer.
+    itoa_hex(st->edx, buff);
+    printk("%edx: ");
     printk(buff);
     printk("\n");
     
-    itoa_hex(contexto->ecx, buff); //guarda el entero en un buffer.
+    itoa_hex(st->ecx, buff);
+    printk("%ecx: ");
     printk(buff);
     printk("\n");
     
-    itoa_hex(contexto->ebx, buff); //guarda el entero en un buffer.
+    itoa_hex(st->ebx, buff);
+    printk("%ebx: ");
     printk(buff);
     printk("\n");
     
-    itoa_hex(contexto->esi, buff); //guarda el entero en un buffer.
+    itoa_hex(st->esi, buff);
+    printk("%esi: ");
     printk(buff);
     printk("\n");
     
-    itoa_hex(contexto->edi, buff); //guarda el entero en un buffer.
+    itoa_hex(st->edi, buff);
+    printk("%edi: ");
     printk(buff);
     printk("\n");
     
-    itoa_hex(contexto->esi, buff); //guarda el entero en un buffer.
+    itoa_hex(st->ebp, buff);
+    printk("%ebp: ");
     printk(buff);
     printk("\n");
     
-    itoa_hex(contexto->ebp, buff); //guarda el entero en un buffer.
+    itoa_hex(st->eax, buff);
+    printk("%eax: ");
     printk(buff);
     printk("\n");
-    
-    itoa_hex(contexto->eax, buff); //guarda el entero en un buffer.
-    printk(buff);
-    printk("\n");
+
     while(1);
 }
 
@@ -178,8 +184,6 @@ void setIdt()
 	
   setInterruptHandler(32, clock_handler, 0);	
   setInterruptHandler(33, keyboard_handler, 0);	
-  
-  //page fault excepcion:
   setInterruptHandler(14, my_page_fault_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
