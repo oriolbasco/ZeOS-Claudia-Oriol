@@ -10,6 +10,7 @@
 //#include <stdio.h>
 
 #include <zeos_interrupt.h>
+#include <zeos_mm.h>
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
