@@ -1,9 +1,24 @@
-# Executables i fitxers binoculars
+# Executables i fitxers binaris / objectes
 *.out
 *.exe
 *.o
 *.obj
 *.s.o
+*.a
+
+# Fitxers generats per ZeOS
+zeos/system
+zeos/user
+zeos/bootsect
+zeos/build
+system
+user
+bootsect
+build
+
+# Logs i sortides de simuladors / emuladors
+bochsout.txt
+*.log
 
 # Fitxers generats pel compilador / enllaçador
 *.elf
@@ -22,15 +37,3 @@
 
 # Dependències generades automàticament
 *.d
-
-# Directoris típics de compilació/sortida
-build/
-bin/
-dist/
-
-# Directoris i fitxers de configuració de l'IDE/editor
-.vscode/
-.idea/
-*.swp
-*~
-.DS_Store
