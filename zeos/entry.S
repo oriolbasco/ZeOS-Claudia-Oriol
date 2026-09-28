@@ -97,3 +97,6 @@ ENTRY(my_page_fault_handler)
 	
 	addl $4, %esp // hem de treure el error code de la pila
 	iret
+
+ENTRY(write_handler)
+	
