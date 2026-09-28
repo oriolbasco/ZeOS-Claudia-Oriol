@@ -88,8 +88,12 @@ ENTRY(clock_handler)
 ENTRY(my_page_fault_handler)
 	SAVE_ALL
 	
-	pushl %esp //dir de top pila
+	pushl %esp // dir de top pila
 	call my_page_fault_routine
 	
+	addl $4, %esp // esborrem el parametre de la funcio
+
 	RESTORE_ALL
+	
+	addl $4, %esp // hem de treure el error code de la pila
 	iret

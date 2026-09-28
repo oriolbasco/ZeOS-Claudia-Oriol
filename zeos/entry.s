@@ -37,5 +37,9 @@
  pushl %esp
  call my_page_fault_routine
 
+ addl $4, %esp
+
  popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs;
+
+ addl $4, %esp
  iret
