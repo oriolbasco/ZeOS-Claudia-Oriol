@@ -4,8 +4,6 @@
 *.o
 *.obj
 *.s.o
-*.a
-
 # Fitxers generats per ZeOS
 zeos/system
 zeos/user
