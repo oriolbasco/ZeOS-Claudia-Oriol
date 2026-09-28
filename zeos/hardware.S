@@ -142,6 +142,12 @@ ENTRY(set_cr3)
 ENTRY(read_cr0)
     movl %cr0, %eax
     ret
+    
+//reads cr2 register
+//int read_cr2();
+ENTRY(read_cr2)
+    movl %cr2, %eax
+    ret
 
 // Sets cr0 register
 // void write_cr0(int value)

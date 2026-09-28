@@ -7,7 +7,6 @@
 #include <hardware.h>
 #include <io.h>
 #include <libc.h>
-
 //#include <stdio.h>
 
 #include <zeos_interrupt.h>
@@ -15,8 +14,27 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
-void keyboard_handler();
-void clock_handler();
+char buff[256];
+
+struct syst_stack {
+  int edx;
+  int ecx;
+  int ebx;
+  int esi;
+  int edi;
+  int ebp;
+  int eax;
+  int ds;
+  int es;
+  int fs;
+  int gs;
+  int error_code;
+  int eip;
+  int cs;
+  int eflags;
+  int esp;
+  int ss;
+};
 
 char char_map[] =
 {
@@ -97,6 +115,58 @@ void clock_routine()
   zeos_show_clock();
 }
 
+//hay q imprimir mensaje + EIP(dirección de la instrucción que provocó el Page Fault) + cr2(dirección de memoria a la que esa instrucción intentó acceder) + CPU registers + while;
+void my_page_fault_routine(struct syst_stack *contexto) {
+    //contexto es un apuntador al tope de la pila
+    
+    printk("Process generates a PAGE FAULT exception at EIP: ");
+    itoa_hex(contexto->eip, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    
+    int num = read_cr2(); //func en assembly;
+    printk("Offending address: ");
+    itoa_hex(num, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    printk("CPU Registers: ");
+    printk("\n");
+    itoa_hex(contexto->edx, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    itoa_hex(contexto->ecx, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    itoa_hex(contexto->ebx, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    itoa_hex(contexto->esi, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    itoa_hex(contexto->edi, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    itoa_hex(contexto->esi, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    itoa_hex(contexto->ebp, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    
+    itoa_hex(contexto->eax, buff); //guarda el entero en un buffer.
+    printk(buff);
+    printk("\n");
+    while(1);
+}
+
 void setIdt()
 {
   /* Program interrups/exception service routines */
@@ -107,8 +177,13 @@ void setIdt()
 	
   setInterruptHandler(32, clock_handler, 0);	
   setInterruptHandler(33, keyboard_handler, 0);	
+  
+  //page fault excepcion:
+  setInterruptHandler(14, my_page_fault_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
   set_idt_reg(&idtR);
 }
+
+
 

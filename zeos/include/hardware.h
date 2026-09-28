@@ -48,6 +48,8 @@ void set_cr3(page_table_entry * dir);
 
 int read_cr0();
 
+int read_cr2();
+
 void write_cr0(int value);
 
 void __sti(void);
