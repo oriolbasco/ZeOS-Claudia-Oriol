@@ -7,8 +7,12 @@
 #include <hardware.h>
 #include <io.h>
 #include <libc.h>
+
 #include <zeos_interrupt.h>
 #include <zeos_mm.h>
+
+#define LECTURA 0
+#define ESCRIPTURA 1
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
@@ -175,6 +179,13 @@ void my_page_fault_routine(struct sys_stack *st)
   while(1);
 }
 
+int sys_write(int fd, char * buffer, int size)
+{
+  if (check_fd(fd, ESCRIPTURA) < 0 || buffer == NULL || size < 0) return -1; // error en el pas de parametres
+
+  
+}
+
 void setIdt()
 {
   /* Program interrups/exception service routines */
@@ -192,6 +203,3 @@ void setIdt()
 
   set_idt_reg(&idtR);
 }
-
-
-
