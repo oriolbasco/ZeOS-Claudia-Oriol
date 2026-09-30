@@ -6,6 +6,10 @@
 
 #include <types.h>
 
+#include <errno.h>
+
+#include <io.h>
+
 int errno;
 
 void itoa(int a, char *b)
@@ -43,3 +47,21 @@ int strlen(char *a)
   return i;
 }
 
+void perror(void)
+{
+  switch (errno)
+  {
+  case EBADF:
+    printk("\nfd incorrecte\n");
+    break;
+  case EINVAL:
+    printk("\nbuffer o size incorrectes\n");
+    break;
+  case ENOSYS:
+    printk("\nfuncio no implementada\n");
+    break;
+  default:
+    printk("\nerror desconegut\n");
+    break;
+  }
+}
