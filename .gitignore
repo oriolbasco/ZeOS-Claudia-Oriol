@@ -5,6 +5,7 @@
 *.obj
 *.s.o
 *.a
+!zeos/libzeos.a
 
 # Fitxers generats per ZeOS
 zeos/system
