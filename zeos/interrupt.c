@@ -7,6 +7,8 @@
 #include <hardware.h>
 #include <io.h>
 #include <libc.h>
+#include <utils.h>
+#include <devices.h>
 
 #include <zeos_interrupt.h>
 #include <zeos_mm.h>
@@ -183,7 +185,10 @@ int sys_write(int fd, char * buffer, int size)
 {
   if (check_fd(fd, ESCRIPTURA) < 0 || buffer == NULL || size < 0) return -1; // error en el pas de parametres
 
+  if (copy_from_user(buffer, buff, size) < 0) return -2; // error en la copia del buffer d espai d usuari a espai de sistema
   
+  int ret = sys_write_console(buff, size);
+  return ret;
 }
 
 void setIdt()

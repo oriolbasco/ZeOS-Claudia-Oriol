@@ -16,6 +16,6 @@ int __attribute__ ((__section__(".text.main")))
   *p = 'x';*/
 
 
-  write();
+  write(1, "\nProva write\n", 13);
   while(1) { }
 }

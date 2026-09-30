@@ -99,7 +99,20 @@ ENTRY(my_page_fault_handler)
 	iret
 
 ENTRY(write)
+	movl (%esp), %edx
+	movl 4(%esp), %ecx
+	movl 8(%esp), %ebx
+
+	movl $4, %eax
+	int	$0x80
+
+	cmp %eax,0
+	jl	error
+
 	
+
+error:
+
 
 ENTRY(write_handler)
 	
