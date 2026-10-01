@@ -4,6 +4,7 @@
 
 #include <asm.h>
 #include <segment.h>
+#include <libc.h>
 
 /**************************************************/
 /**** Save & Restore ******************************/
@@ -88,31 +89,44 @@ ENTRY(clock_handler)
 ENTRY(my_page_fault_handler)
 	SAVE_ALL
 	
-	pushl %esp // dir de top pila
+	pushl %esp # dir de top pila
 	call my_page_fault_routine
 	
-	addl $4, %esp // esborrem el parametre de la funcio
+	addl $4, %esp # esborrem el parametre de la funcio
 
 	RESTORE_ALL
 	
-	addl $4, %esp // hem de treure el error code de la pila
+	addl $4, %esp # hem de treure el error code de la pila
 	iret
 
 ENTRY(write)
-	movl (%esp), %edx
-	movl 4(%esp), %ecx
-	movl 8(%esp), %ebx
+	pushl %ebp
+	movl %esp, %ebp
 
-	movl $4, %eax
-	int	$0x80
+	pushl %ebx # hem de guardar el valor actual d ebx pq necessitem el registre pel pas de parametres
 
-	cmp %eax,0
-	jl	error
+	movl 8(%esp), %edx # parametre 1: fd
+	movl 12(%esp), %ecx # parametre 2: buffer
+	movl 16(%esp), %ebx # parametre 3: size
 
-	
+	movl $4, %eax # pos a la sys_call_table
+	int	$0x80 # activem la trap
 
-error:
+	popl %ebx
 
+	cmp $0, %eax # mirem si el return value del handler es negatiu (error)
+	jge	ok
+
+	subl $0, %eax # agafem el valor absolut
+	movl %eax, errno # el posem a variable errno
+	movl $-1, %eax # retornem -1 per indicar que hi ha error
+
+ok:
+	popl %ebp
+	ret
 
 ENTRY(write_handler)
+	SAVE_ALL
+
+	
 	

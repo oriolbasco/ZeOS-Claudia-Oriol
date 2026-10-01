@@ -1,9 +1,9 @@
 #ifndef _ERRNO_H
 #define _ERRNO_H
 
-#define EFD 9
-#define EINVPAR 22 
-#define ENOFUNC 38
+#define EBADF 9
+#define EINVAL 22 
+#define ENOSYS 38
 
 extern int errno;
 
