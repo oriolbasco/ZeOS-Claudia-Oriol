@@ -23,9 +23,11 @@ int sys_write(int fd, char * buffer, int size)
 {
   if (check_fd(fd, ESCRIPTURA) < 0) return -EBADF; // error en el pas de parametres
 
-  if (buffer == NULL || size < 0) return -EINVAL;
+  if (buffer == NULL || size < 0 || size > 256) return -EINVAL;
 
   char buff[256];
+
+  if (!access_ok(VERIFY_READ, buffer, size)) return -EFAULT;
 
   if (copy_from_user(buffer, buff, size) < 0) return -EFAULT; // error en la copia del buffer d espai d usuari a espai de sistema
   
