@@ -89,37 +89,37 @@ ENTRY(clock_handler)
 ENTRY(my_page_fault_handler)
 	SAVE_ALL
 	
-	pushl %esp # dir de top pila
+	pushl %esp // dir de top pila
 	call my_page_fault_routine
 	
-	addl $4, %esp # esborrem el parametre de la funcio
+	addl $4, %esp // esborrem el parametre de la funcio
 
 	RESTORE_ALL
 	
-	addl $4, %esp # hem de treure el error code de la pila
+	addl $4, %esp // hem de treure el error code de la pila
 	iret
 
 ENTRY(write)
 	pushl %ebp
 	movl %esp, %ebp
 
-	pushl %ebx # hem de guardar el valor actual d ebx pq necessitem el registre pel pas de parametres
+	pushl %ebx // hem de guardar el valor actual d ebx pq necessitem el registre pel pas de parametres
 
-	movl 8(%esp), %edx # parametre 1: fd
-	movl 12(%esp), %ecx # parametre 2: buffer
-	movl 16(%esp), %ebx # parametre 3: size
+	movl 8(%esp), %edx // parametre 1: fd
+	movl 12(%esp), %ecx // parametre 2: buffer
+	movl 16(%esp), %ebx // parametre 3: size
 
-	movl $4, %eax # pos a la sys_call_table
-	int	$0x80 # activem la trap
+	movl $4, %eax // pos a la sys_call_table
+	int	$0x80 // activem la trap
 
 	popl %ebx
 
-	cmp $0, %eax # mirem si el return value del handler es negatiu (error)
+	cmp $0, %eax // mirem si el return value del handler es negatiu (error)
 	jge	ok
 
-	subl $0, %eax # agafem el valor absolut
-	movl %eax, errno # el posem a variable errno
-	movl $-1, %eax # retornem -1 per indicar que hi ha error
+	subl $0, %eax // agafem el valor absolut
+	movl %eax, errno // el posem a variable errno
+	movl $-1, %eax // retornem -1 per indicar que hi ha error
 
 ok:
 	popl %ebp
@@ -128,5 +128,22 @@ ok:
 ENTRY(write_handler)
 	SAVE_ALL
 
-	
-	
+	cmpl $0, %eax // mirar si el index de la sys call es negatiu
+	jl	err
+	cmpl $MAX_SYSCALL, %eax // mirar si el index de la sys call es mes gran que el maxim
+	jg	err
+
+	// posem els parametres necessaris per la rutina
+	pushl %ebx // size 
+	pushl %ecx // buffer
+	pushl %edx // fd
+
+	call *sys_call_table(, %eax, 0x04) // entrem a la syscall pel seu index
+	jmp fin
+
+err: 
+	movl $-ENOSYS, %eax
+fin:
+	movl %eax, 0x18(%esp) // guardem directament a la pila el valor de eax pel return ja que sino amb el restore all s esborraria
+	RESTORE_ALL
+	iret
