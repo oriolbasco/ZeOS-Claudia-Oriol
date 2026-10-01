@@ -131,12 +131,11 @@ ENTRY(write_handler)
 	cmpl $MAX_SYSCALL, %eax // mirar si el index de la sys call es mes gran que el maxim
 	jg	err
 
-	// posem els parametres necessaris per la rutina
-	pushl %ebx // size 
-	pushl %ecx // buffer
-	pushl %edx // fd
+	// posem el punter als parametres (pila d usuari)
+	pushl %ebx
 
 	call *sys_call_table(, %eax, 0x04) // entrem a la syscall pel seu index
+	addl $4, %esp // treure parametre de la pila
 	jmp fin
 
 err: 
