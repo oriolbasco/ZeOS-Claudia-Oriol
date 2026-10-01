@@ -93,3 +93,23 @@ ENTRY(my_page_fault_handler)
 	
 	RESTORE_ALL
 	iret
+	
+
+//el handler de todas las system calls
+ENTRY(system_call_handler)
+	SAVE_ALL
+	
+	//check de system call number:
+	cmp $48,%eax
+	jle not_valid 
+	cmp $255, %eax
+	jg not_valid
+	
+	//llamamos a la funcionalidad que toca
+	call  //es asi?
+	
+	//ahora en eax hay 
+not valid:
+	iret
+	
+

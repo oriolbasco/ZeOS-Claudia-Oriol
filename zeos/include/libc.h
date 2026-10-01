@@ -10,4 +10,6 @@ void itoa(int a, char *b);
 
 int strlen(char *a);
 
+void perror();
+
 #endif  /* __LIBC_H__ */

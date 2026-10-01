@@ -27,3 +27,14 @@ int sys_ni_syscall()
 {
 	return -38; /*ENOSYS*/
 }
+
+
+int sys_write(int fd, void* buffer, int size) {
+  //check parametres:
+  if(check_fd(fd,ESCRIPTURA) != 0) return -1;
+  else if(buffer == NULL) return -1;
+  else if(size <= 0) return -1;
+  //aqui hem de utlilitzar copy_from_user???
+  
+  return sys_write_console(buffer, size); 
+}

@@ -182,6 +182,8 @@ void setIdt()
   //page fault excepcion:
   setInterruptHandler(14, my_page_fault_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
+  
+  
 
   set_idt_reg(&idtR);
 }
