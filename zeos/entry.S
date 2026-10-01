@@ -105,19 +105,17 @@ ENTRY(write)
 
 	pushl %ebx // hem de guardar el valor actual d ebx pq necessitem el registre pel pas de parametres
 
-	movl 8(%esp), %edx // parametre 1: fd
-	movl 12(%esp), %ecx // parametre 2: buffer
-	movl 16(%esp), %ebx // parametre 3: size
+	lea 8(%ebp), %ebx // posem a ebx l adreça de la pila on començen els parametres
 
 	movl $4, %eax // pos a la sys_call_table
-	int	$0x80 // activem la trap
+	int	$0x93 // activem la trap
 
 	popl %ebx
 
 	cmp $0, %eax // mirem si el return value del handler es negatiu (error)
 	jge	ok
 
-	subl $0, %eax // agafem el valor absolut
+	negl %eax // agafem el valor absolut
 	movl %eax, errno // el posem a variable errno
 	movl $-1, %eax // retornem -1 per indicar que hi ha error
 
