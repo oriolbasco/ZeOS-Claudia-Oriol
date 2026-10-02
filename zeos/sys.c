@@ -19,7 +19,7 @@ int check_fd(int fd, int permissions)
   return 0;
 }
 
-int sys_write(unsigned int * st)
+int sys_write(void * st)
 {
   if (!access_ok(VERIFY_READ, st, 3 * sizeof(unsigned int))) return -EFAULT;
 

@@ -4,7 +4,6 @@
 
 #include <asm.h>
 #include <segment.h>
-#include <libc.h>
 
 /**************************************************/
 /**** Save & Restore ******************************/
@@ -115,15 +114,14 @@ ENTRY(write)
 	cmp $0, %eax // mirem si el return value del handler es negatiu (error)
 	jge	ok
 
-	negl %eax // agafem el valor absolut
-	movl %eax, errno // el posem a variable errno
+	negl %eax // agafem el valor absolut	
 	movl $-1, %eax // retornem -1 per indicar que hi ha error
 
 ok:
 	popl %ebp
 	ret
 
-ENTRY(write_handler)
+ENTRY(sys_handler)
 	SAVE_ALL
 
 	cmpl $0, %eax // mirar si el index de la sys call es negatiu
@@ -131,11 +129,7 @@ ENTRY(write_handler)
 	cmpl $MAX_SYSCALL, %eax // mirar si el index de la sys call es mes gran que el maxim
 	jg	err
 
-	// posem el punter als parametres (pila d usuari)
-	pushl %ebx
-
 	call *sys_call_table(, %eax, 0x04) // entrem a la syscall pel seu index
-	addl $4, %esp // treure parametre de la pila
 	jmp fin
 
 err: 

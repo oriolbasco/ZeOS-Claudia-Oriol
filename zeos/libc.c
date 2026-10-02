@@ -50,16 +50,16 @@ void perror(void)
   switch (errno)
   {
   case EBADF:
-    printk("\nfd incorrecte\n");
+    write(1, "\nfd incorrecte\n", 14);
     break;
   case EINVAL:
-    printk("\nbuffer o size incorrectes\n");
+    write(1, "\nbuffer o size incorrectes\n", 26);
     break;
   case ENOSYS:
-    printk("\nfuncio no implementada\n");
+    write(1, "\nfuncio no implementada\n", 24);
     break;
   default:
-    printk("\nerror desconegut\n");
+    write(1, "\nerror desconegut\n", 18);
     break;
   }
 }
