@@ -3,12 +3,11 @@
  */
 
 #include <libc.h>
-
 #include <types.h>
-
 #include <errno.h>
-
 #include <io.h>
+
+int errno = 0;
 
 void itoa(int a, char *b)
 {
@@ -50,16 +49,16 @@ void perror(void)
   switch (errno)
   {
   case EBADF:
-    write(1, "\nfd incorrecte\n", 14);
+    //write(1, "\nfd incorrecte\n", 14);
     break;
   case EINVAL:
-    write(1, "\nbuffer o size incorrectes\n", 26);
+    //write(1, "\nbuffer o size incorrectes\n", 26);
     break;
   case ENOSYS:
-    write(1, "\nfuncio no implementada\n", 24);
+    //write(1, "\nfuncio no implementada\n", 24);
     break;
   default:
-    write(1, "\nerror desconegut\n", 18);
+    //write(1, "\nerror desconegut\n", 18);
     break;
   }
 }

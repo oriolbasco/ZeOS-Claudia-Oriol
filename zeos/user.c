@@ -4,7 +4,7 @@ char buff[24];
 
 int pid;
 
-int write(int fd, char * buffer, int size);
+//int write(int fd, char * buffer, int size);
 
 int __attribute__ ((__section__(".text.main")))
   main(void)

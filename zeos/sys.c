@@ -33,9 +33,9 @@ int sys_write(void * st)
   int err = check_fd(fd, ESCRIPTURA);
   if (err < 0) return err;
 
-  if (buffer == NULL || size < 0 || size > 256) return -EINVAL;
-
   if (!access_ok(VERIFY_READ, buffer, size)) return -EFAULT;
+
+  if (buffer == NULL || size < 0 || size > 256) return -EINVAL;
 
   char local_buff[256];
   if (copy_from_user(buffer, local_buff, size) < 0) return -EFAULT;
