@@ -2,22 +2,24 @@
 #include <segment.h>
 
 ENTRY(write)
-  //guardamos variables para tenerlas en modo sistema, nose q quiere decir esto!!!
   //registers EDX, ECX, EBX, ESI, EDI, EBP.
-  mov 8(%ebp), %edx
-  mov 12(%ebp), %ecx
-  mov 16(%ebp), %ebx
+  pushl %ebp
+  mov %esp, %ebp
+  
+  leal 8(%ebp), %ebx //puntero a param de pila user.
   
   mov $4, %eax //funcionalidad;
-  INT $0x80 //entrada SO
+  INT $0x93 //entrada SO
   
   //si hay un error en la llamada!!
   cmp 0, %eax
   jge continuar
 //if:
-  mov -%eax, errno
+  negl %eax
+  mov %eax, errno
   mov $-1, %eax
 
-//esta bien esta etiquetaa??
 continuar:
+  mov %ebp, %esp
+  popl %ebp
   ret

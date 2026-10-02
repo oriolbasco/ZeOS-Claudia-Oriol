@@ -183,6 +183,7 @@ void setIdt()
   setInterruptHandler(14, my_page_fault_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   
+  setTrapHandler(0x93, system_call_handler, 3);
   
 
   set_idt_reg(&idtR);

@@ -12,9 +12,9 @@ int __attribute__ ((__section__(".text.main")))
 
   //char* p = 0;
   //*p = 'x';
-  int ret = write(1, buff, sizeof(buff));
+  write(1, buff, sizeof(buff));
   
-  if(ret < 0) perror("error en el write");
+  //if(ret < 0) perror("error en el write");
   
   while(1) { }
 }
