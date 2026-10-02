@@ -4,6 +4,7 @@
 
 #include <asm.h>
 #include <segment.h>
+#include <errno.h>
 
 /**************************************************/
 /**** Save & Restore ******************************/
@@ -96,4 +97,24 @@ ENTRY(my_page_fault_handler)
 	RESTORE_ALL
 	
 	addl $4, %esp // hem de treure el error code de la pila
+	iret
+
+ENTRY(system_call_handler)
+	SAVE_ALL
+
+	cmpl $0, %eax // mirar si el index de la sys call es negatiu
+	jl	err
+	cmpl $MAX_SYSCALL, %eax // mirar si el index de la sys call es mes gran que el maxim
+	jg	err
+
+	pushl %ebx
+	call *sys_call_table(, %eax, 4) // entrem a la syscall pel seu index
+	addl $4, %esp
+	jmp fin
+
+err: 
+	movl $-ENOSYS, %eax
+fin:
+	movl %eax, 0x18(%esp) // guardem directament a la pila el valor de eax pel return ja que sino amb el restore all s esborraria
+	RESTORE_ALL
 	iret

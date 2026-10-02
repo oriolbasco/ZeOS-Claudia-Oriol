@@ -7,8 +7,15 @@
 #include <hardware.h>
 #include <io.h>
 #include <libc.h>
+#include <utils.h>
+#include <devices.h>
+#include <errno.h>
+
 #include <zeos_interrupt.h>
 #include <zeos_mm.h>
+
+#define LECTURA 0
+#define ESCRIPTURA 1
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
@@ -28,6 +35,7 @@ struct sys_stack
   unsigned int es;
   unsigned int fs;
   unsigned int gs;
+
   unsigned int error_code;
   unsigned int eip;
   unsigned int cs;
@@ -188,8 +196,7 @@ void setIdt()
   setInterruptHandler(14, my_page_fault_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
+  setTrapHandler(0x93, system_call_handler, 3);
+
   set_idt_reg(&idtR);
 }
-
-
-
