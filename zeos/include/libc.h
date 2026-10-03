@@ -6,6 +6,8 @@
 #ifndef __LIBC_H__
 #define __LIBC_H__
 
+extern int errno;
+
 void itoa(int a, char *b);
 int write(int fd, char *buffer, int size);
 void perror(void);

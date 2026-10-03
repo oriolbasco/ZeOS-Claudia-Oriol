@@ -33,14 +33,32 @@ int sys_write(void * st)
   int err = check_fd(fd, ESCRIPTURA);
   if (err < 0) return err;
 
+  if (buffer == NULL || size < 0) return -EINVAL;
+  if (size == 0) return 0;
+
   if (!access_ok(VERIFY_READ, buffer, size)) return -EFAULT;
 
-  if (buffer == NULL || size < 0 || size > 256) return -EINVAL;
-
+  int sizeAux = size;
+  int bytesEscrits = 0;
   char local_buff[256];
-  if (copy_from_user(buffer, local_buff, size) < 0) return -EFAULT;
 
-  return sys_write_console(local_buff, size);
+  while (sizeAux > 0)
+  {
+    int sizeChunk;
+    if (sizeAux > 256) sizeChunk = 256;
+    else sizeChunk = sizeAux;
+
+    if (copy_from_user(buffer, local_buff, sizeChunk) < 0) return -EFAULT;
+
+    int ret = sys_write_console(local_buff, sizeChunk);
+    if (ret < 0) return ret;
+
+    sizeAux -= ret;
+    bytesEscrits += ret;
+    buffer += ret;
+  }
+
+  return bytesEscrits;
 }
 
 int sys_ni_syscall()
