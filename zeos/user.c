@@ -17,5 +17,6 @@ int __attribute__ ((__section__(".text.main")))
 
 
   write(1, "\nProva write\n", 13);
+  perror();
   while(1) { }
 }
