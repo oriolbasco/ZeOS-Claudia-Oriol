@@ -49,16 +49,19 @@ void perror(void)
   switch (errno)
   {
   case EBADF:
-    //write(1, "\nfd incorrecte\n", 14);
+    write(1, "fd incorrecte\n", 14);
     break;
   case EINVAL:
-    //write(1, "\nbuffer o size incorrectes\n", 26);
+    write(1, "buffer o size incorrectes\n", 26);
     break;
   case ENOSYS:
-    //write(1, "\nfuncio no implementada\n", 24);
+    write(1, "funcio no implementada\n", 24);
+    break;
+  case 0:
+    write(1, "la sys call s'ha executat correctament\n", 39);
     break;
   default:
-    //write(1, "\nerror desconegut\n", 18);
+    write(1, "error desconegut\n", 18);
     break;
   }
 }
