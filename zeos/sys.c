@@ -19,6 +19,11 @@ int check_fd(int fd, int permissions)
   return 0;
 }
 
+/**
+ * @name sys_write
+ * @param st punter void, apunta al primer parametre de la funcio write guardat a la pila d'usuari
+ * @return si tot esta be retorna el numero de bytes escrits, sino retorna un error code. 
+ */
 int sys_write(void * st)
 {
   if (!access_ok(VERIFY_READ, st, 3 * sizeof(unsigned int))) return -EFAULT;
