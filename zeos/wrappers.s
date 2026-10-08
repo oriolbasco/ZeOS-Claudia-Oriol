@@ -30,3 +30,15 @@
 ok:
  popl %ebp
  ret
+
+
+
+.globl gettime; .type gettime, @function; .align 0; gettime:
+ pushl %ebp
+ movl %esp, %ebp
+
+ movl $10, %eax
+ int $0x93
+
+ popl %ebp
+ ret

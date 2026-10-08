@@ -21,6 +21,7 @@ Gate idt[IDT_ENTRIES];
 Register    idtR;
 
 char buff[256];
+extern int zeos_ticks;
 
 struct sys_stack 
 {
@@ -121,6 +122,7 @@ void keyboard_routine()
 void clock_routine()
 {
   zeos_show_clock();
+  zeos_ticks++;
 }
 
 

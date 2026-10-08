@@ -19,6 +19,9 @@ unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
 
+//variable global del gettime
+int zeos_ticks;
+
 
 /*
  *   Main entry point to ZEOS Operating System
@@ -60,6 +63,8 @@ int __attribute__((__section__(".text.main")))
   init_task1();
   /* Initialize idle task  data */
   init_idle();
+  
+  zeos_ticks = 0; //inicialitzacio
 
   /* Move user code/data now (after the page table initialization) */
   copy_data((void *) KERNEL_START + *p_sys_size, (void*)L_USER_START, *p_usr_size);

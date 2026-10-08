@@ -44,8 +44,10 @@ int strlen(char *a)
   return i;
 }
 
-//escriu missatge error mirant errno
+
 void perror(void) {
   if(errno == EBADF) write(1, "\nincorrect fd\n", sizeof("\nincorrect fd\n"));
   else if(errno == EACCES) write(1, "\nyou don't have write permissions\n", sizeof("\nyou don't have write permissions\n"));
+  else if(errno == EFAULT) write(1, "\nbad adress\n", sizeof("\nbad adress\n")); //problema con una DIRECCIÓN
+  else if(errno == EINVAL) write(1, "\ninvalid argument\n", sizeof("\ninvalid argument\n")); //problema con el VALOR de un argumento
 }

@@ -23,3 +23,15 @@ ENTRY(write)
 ok:
 	popl %ebp
 	ret
+
+
+	
+ENTRY(gettime)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl $10, %eax // pos a la sys_call_table 
+	int	$0x93 // activem la trap
+	
+	popl %ebp
+	ret
