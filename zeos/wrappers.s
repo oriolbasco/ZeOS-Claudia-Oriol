@@ -32,7 +32,6 @@ ok:
  ret
 
 
-
 .globl gettime; .type gettime, @function; .align 0; gettime:
  pushl %ebp
  movl %esp, %ebp

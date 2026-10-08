@@ -68,11 +68,10 @@ int sys_write(void * st)
   return bytesEscrits;
 }
 
-
-int sys_gettime() {
+int sys_gettime()
+{
   return zeos_ticks;
 }
-
 
 int sys_ni_syscall()
 {

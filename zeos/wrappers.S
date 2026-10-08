@@ -25,7 +25,6 @@ ok:
 	ret
 
 
-	
 ENTRY(gettime)
 	pushl %ebp
 	movl %esp, %ebp

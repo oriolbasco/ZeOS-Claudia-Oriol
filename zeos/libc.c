@@ -45,7 +45,8 @@ int strlen(char *a)
 }
 
 
-void perror(void) {
+void perror(void) 
+{
   if(errno == EBADF) write(1, "\nincorrect fd\n", sizeof("\nincorrect fd\n"));
   else if(errno == EACCES) write(1, "\nyou don't have write permissions\n", sizeof("\nyou don't have write permissions\n"));
   else if(errno == EFAULT) write(1, "\nbad adress\n", sizeof("\nbad adress\n")); //problema con una DIRECCIÓN
