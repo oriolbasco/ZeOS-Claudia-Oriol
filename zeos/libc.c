@@ -43,3 +43,8 @@ int strlen(char *a)
   return i;
 }
 
+//escribe mensaje de error
+//debo tener errno i perror!!!!
+void perror(void) {
+  
+}
