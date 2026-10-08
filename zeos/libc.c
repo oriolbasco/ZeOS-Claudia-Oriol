@@ -3,11 +3,11 @@
  */
 
 #include <libc.h>
+
 #include <types.h>
 #include <errno.h>
-#include <io.h>
 
-int errno = 0;
+int errno;
 
 void itoa(int a, char *b)
 {
@@ -44,24 +44,8 @@ int strlen(char *a)
   return i;
 }
 
-void perror(void)
-{
-  switch (errno)
-  {
-  case EBADF:
-    write(1, "fd incorrecte\n", 14);
-    break;
-  case EINVAL:
-    write(1, "buffer o size incorrectes\n", 26);
-    break;
-  case ENOSYS:
-    write(1, "funcio no implementada\n", 24);
-    break;
-  case 0:
-    write(1, "la sys call s'ha executat correctament\n", 39);
-    break;
-  default:
-    write(1, "error desconegut\n", 18);
-    break;
-  }
+//escriu missatge error mirant errno
+void perror(void) {
+  if(errno == EBADF) write(1, "\nincorrect fd\n", sizeof("\nincorrect fd\n"));
+  else if(errno == EACCES) write(1, "\nyou don't have write permissions\n", sizeof("\nyou don't have write permissions\n"));
 }

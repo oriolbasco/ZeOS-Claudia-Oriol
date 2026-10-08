@@ -5,5 +5,6 @@
 #define EFAULT 14
 #define EINVAL 22 
 #define ENOSYS 38
+#define EACCES 13
 
 #endif

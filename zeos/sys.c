@@ -14,8 +14,8 @@
 
 int check_fd(int fd, int permissions)
 {
-  if (fd!=1) return -9; /*EBADF*/
-  if (permissions!=ESCRIPTURA) return -13; /*EACCES*/
+  if (fd!=1) return -EBADF;
+  if (permissions!=ESCRIPTURA) return -EACCES;
   return 0;
 }
 
@@ -68,5 +68,5 @@ int sys_write(void * st)
 
 int sys_ni_syscall()
 {
-	return -38; /*ENOSYS*/
+	return -ENOSYS;
 }
