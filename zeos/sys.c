@@ -11,6 +11,7 @@
 
 #define LECTURA 0
 #define ESCRIPTURA 1
+#define chunk 256
 
 extern int zeos_ticks;
 
@@ -47,12 +48,12 @@ int sys_write(void * st)
 
   int sizeAux = size;
   int bytesEscrits = 0;
-  char local_buff[256];
+  char local_buff[chunk];
 
   while (sizeAux > 0)
   {
     int sizeChunk;
-    if (sizeAux > 256) sizeChunk = 256;
+    if (sizeAux > chunk) sizeChunk = chunk;
     else sizeChunk = sizeAux;
 
     if (copy_from_user(buffer, local_buff, sizeChunk) < 0) return -EFAULT;
