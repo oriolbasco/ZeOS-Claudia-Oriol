@@ -14,6 +14,13 @@ main(void)
   if (write(1, "\nProva write\n", 13) < 0) perror();
   if (write(5, "\nProva write erronia\n", 13) < 0) perror(); // error fd incorrecte
   
+  char buffTestSize[500]; // prova buffer mes que 256
+  for (int i = 0; i < 500; ++i) buffTestSize[i] = 'a';
+  if (write(1,buffTestSize,500) < 0) perror();
+
+  if (write(1, nullptr, 10) < 0) perror(); // prova punter buffer incorrecte
+  if (write(1, "Test", -5) < 0) perror(); // prova size dolent
+
   //proba de gettime
   if (write(1, "\nProva gettime: \n", sizeof("\nProva gettime: \n")) < 0) perror();
   
