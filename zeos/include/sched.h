@@ -11,6 +11,9 @@
 
 #define KERNEL_STACK_SIZE	1024
 
+extern struct list_head ready_queue;
+extern struct task_struct *init_task;
+
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
@@ -18,7 +21,7 @@ struct task_struct {
   page_table_entry * dir_pages_baseAddr;
   unsigned int quantum; /* Temps que li queda a un proces a dins de la cpu */
   struct list_head list;	/* node del proces a la ready queue */
-
+  unsigned int dir_pages_baseAddr;
 };
 
 union task_union {

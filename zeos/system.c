@@ -21,8 +21,6 @@ unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
 
 //variable global del gettime
 int zeos_ticks;
-struct list_head ready_queue;
-
 
 /*
  *   Main entry point to ZEOS Operating System

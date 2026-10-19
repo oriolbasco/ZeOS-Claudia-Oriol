@@ -9,6 +9,9 @@
 
 char initial_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned(4096))); // Space for the initial system stack
 
+struct list_head ready_queue;
+struct task_struct *init_task;
+
 void cpu_idle(void)
 {
 	__sti();
@@ -62,6 +65,11 @@ void init_task1(void)
     set_ss_pag(SPTAddress, PCB, PCB, 0);
 
 	task1->PID = 1;
+	task1->dir_pages_baseAddr = DirAddress;
+
+	set_cr3(DirAddress);
+
+	init_task = task1;
 
 	tss.esp0 = &(task1_union->stack[KERNEL_STACK_SIZE]);
 }
