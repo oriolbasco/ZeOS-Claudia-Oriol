@@ -15,7 +15,14 @@ enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
+<<<<<<< Updated upstream
   page_table_entry * dir_pages_baseAddr;
+=======
+  page_table_entry * dir_pages_baseAddr; //page directory de ese proceso
+  unsigned int quantum; /* Temps que li queda a un proces a dins de la cpu */
+  struct list_head list;	/* node del proces a la ready queue */
+  unsigned int dir_pages_baseAddr;
+>>>>>>> Stashed changes
 };
 
 union task_union {

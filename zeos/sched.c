@@ -20,11 +20,70 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
+	//directori de pagines del idle
+	int Dir = alloc_frame();
+	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
+	clear_page_table(DirAddress);
 
+	//nou pcb
+	int PCB = alloc_frame();
+	union task_union *idle_union = (union task_union *) (PCB << 12); //converteix de idPagina a direccio de memoria
+	struct task_struct *idle = &(idle_union->task);
+	idle->PID = 0;
+	idle->dir_pages_baseAddr = DirAddress;
 }
 
 void init_task1(void)
 {
+<<<<<<< Updated upstream
+=======
+	int Dir = alloc_frame();
+	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
+	clear_page_table(DirAddress);
+
+	int SystemPT = alloc_frame();
+	page_table_entry *SPTAddress = (page_table_entry *) (SystemPT << 12);
+	clear_page_table(SPTAddress);
+
+	int UserPT = alloc_frame();
+	page_table_entry *UPTAddress = (page_table_entry *) (UserPT << 12);
+	clear_page_table(UPTAddress);
+
+	//omplim taules de pagines(memoria kernell i user)
+	set_kernel_pages(SPTAddress);
+	set_user_pages(UPTAddress);
+
+	//conectem les dues al page directory
+    DirAddress[0].entry = 0;
+    DirAddress[0].bits.pbase_addr = SystemPT;
+    DirAddress[0].bits.present = 1;
+    DirAddress[0].bits.rw = 1;
+    DirAddress[0].bits.user = 0;
+
+    DirAddress[1].entry = 0;
+    DirAddress[1].bits.pbase_addr = UserPT;
+    DirAddress[1].bits.present = 1;
+    DirAddress[1].bits.rw = 1;
+    DirAddress[1].bits.user = 1;
+
+	int PCB = alloc_frame();
+	union task_union *task1_union = (union task_union *) (PCB << 12);
+	struct task_struct *task1 = &(task1_union->task);
+
+	set_ss_pag(SPTAddress, Dir, Dir, 0);
+	set_ss_pag(SPTAddress, SystemPT, SystemPT, 0);
+    set_ss_pag(SPTAddress, UserPT, UserPT, 0);
+    set_ss_pag(SPTAddress, PCB, PCB, 0);
+
+	task1->PID = 1;
+	task1->dir_pages_baseAddr = DirAddress;
+
+	set_cr3(DirAddress);
+
+	init_task = task1;
+
+	tss.esp0 = &(task1_union->stack[KERNEL_STACK_SIZE]);
+>>>>>>> Stashed changes
 }
 
 
