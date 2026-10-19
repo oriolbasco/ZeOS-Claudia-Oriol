@@ -38,21 +38,33 @@ void init_task1(void)
 	clear_page_table(UPTAddress);
 
 	set_kernel_pages(SPTAddress);
-	set_user_pages(DirAddress);
-	set_ss_pag(SPTAddress, Dir, Dir, 0);
+	set_user_pages(UPTAddress);
 
-	DirAddress[0].entry = SPTAddress;
-	DirAddress[1].entry = UPTAddress;
+    DirAddress[0].entry = 0;
+    DirAddress[0].bits.pbase_addr = SystemPT;
+    DirAddress[0].bits.present = 1;
+    DirAddress[0].bits.rw = 1;
+    DirAddress[0].bits.user = 0;
+
+    DirAddress[1].entry = 0;
+    DirAddress[1].bits.pbase_addr = UserPT;
+    DirAddress[1].bits.present = 1;
+    DirAddress[1].bits.rw = 1;
+    DirAddress[1].bits.user = 1;
 
 	int PCB = alloc_frame();
-
-	struct task_union *task1_union = (struct task_union *) (PCB << 12);
+	union task_union *task1_union = (union task_union *) (PCB << 12);
 	struct task_struct *task1 = &(task1_union->task);
+
+	set_ss_pag(SPTAddress, Dir, Dir, 0);
+	set_ss_pag(SPTAddress, SystemPT, SystemPT, 0);
+    set_ss_pag(SPTAddress, UserPT, UserPT, 0);
+    set_ss_pag(SPTAddress, PCB, PCB, 0);
+
 	task1->PID = 1;
 
-	TSS.esp0 = &(task1_union->stack[1024]);
+	tss.esp0 = &(task1_union->stack[KERNEL_STACK_SIZE]);
 }
-
 
 void init_sched()
 {
