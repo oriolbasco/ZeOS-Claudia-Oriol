@@ -25,6 +25,32 @@ void init_idle (void)
 
 void init_task1(void)
 {
+	int Dir = alloc_frame();
+	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
+	clear_page_table(DirAddress);
+
+	int SystemPT = alloc_frame();
+	page_table_entry *SPTAddress = (page_table_entry *) (SystemPT << 12);
+	clear_page_table(SPTAddress);
+
+	int UserPT = alloc_frame();
+	page_table_entry *UPTAddress = (page_table_entry *) (UserPT << 12);
+	clear_page_table(UPTAddress);
+
+	set_kernel_pages(SPTAddress);
+	set_user_pages(DirAddress);
+	set_ss_pag(SPTAddress, Dir, Dir, 0);
+
+	DirAddress[0].entry = SPTAddress;
+	DirAddress[1].entry = UPTAddress;
+
+	int PCB = alloc_frame();
+
+	struct task_union *task1_union = (struct task_union *) (PCB << 12);
+	struct task_struct *task1 = &(task1_union->task);
+	task1->PID = 1;
+
+	TSS.esp0 = &(task1_union->stack[1024]);
 }
 
 
