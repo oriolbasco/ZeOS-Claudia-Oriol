@@ -20,23 +20,35 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
-	//directori de pagines del idle
+	//page directory de idle
 	int Dir = alloc_frame();
 	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
 	clear_page_table(DirAddress);
 
-	//nou pcb
+	//en la entrada 0 del directorio de idle debe acabar apareciendo el mismo frame de System PT que usa init
+	DirAddress[0].entry = 0;
+	DirAddress[0].bits.pbase_addr = init_task->SPTAddress;
+	DirAddress[0].bits.present = 1;
+	DirAddress[0].bits.rw = 1;
+	DirAddress[0].bits.user = 0;
+
 	int PCB = alloc_frame();
-	union task_union *idle_union = (union task_union *) (PCB << 12); //converteix de idPagina a direccio de memoria
-	struct task_struct *idle = &(idle_union->task);
-	idle->PID = 0;
-	idle->dir_pages_baseAddr = DirAddress;
+	union task_union *idle_union = (union task_union *) (PCB << 12);
+	struct task_struct *idle_task = &(idle_union->task);
+
+	set_ss_pag(SPTAddress, Dir, Dir, 0);
+	set_ss_pag(SPTAddress, PCB, PCB, 0);
+
+	idle_task->PID = 0;
+	idle_task->dir_pages_baseAddr = DirAddress;
+
+	//preparar su stack de sistema?
+	idle_union->stack[KERNEL_STACK_SIZE-1] = &cpu_idle;
+	idle_union->stack[KERNEL_STACK_SIZE-2] = 0; //valor del reg ebp
 }
 
 void init_task1(void)
 {
-<<<<<<< Updated upstream
-=======
 	int Dir = alloc_frame();
 	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
 	clear_page_table(DirAddress);
@@ -83,7 +95,6 @@ void init_task1(void)
 	init_task = task1;
 
 	tss.esp0 = &(task1_union->stack[KERNEL_STACK_SIZE]);
->>>>>>> Stashed changes
 }
 
 
