@@ -38,9 +38,10 @@ void init_idle (void)
 {
 	int Dir = alloc_frame();
 	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
+	page_table_entry *SystemPT = get_PT(init_task);
+	set_ss_pag(SystemPT, Dir, Dir, 0);
 	clear_page_table(DirAddress);
 
-	page_table_entry *SystemPT = get_PT(init_task);
 	DirAddress[0].entry = 0;
 	DirAddress[0].bits.pbase_addr = (unsigned int)SystemPT >> 12;
     DirAddress[0].bits.present = 1;
@@ -48,10 +49,10 @@ void init_idle (void)
     DirAddress[0].bits.user = 0;
 
 	int PCB = alloc_frame();
+	set_ss_pag(SystemPT, PCB, PCB, 0);
 	union task_union *idle_union = (union task_union *) (PCB << 12);
 	struct task_struct *idle_pcb = &(idle_union->task);
 
-	list_del(&(idle_pcb->list));
 	idle_pcb->PID = 0;
     idle_pcb->dir_pages_baseAddr = DirAddress;
 	idle_union->stack[KERNEL_STACK_SIZE - 1] = (unsigned long) cpu_idle; // guardem l'adreça de cpu_idle per fer el task switch

@@ -118,3 +118,25 @@ fin:
 	movl %eax, 0x18(%esp) // guardem directament a la pila el valor de eax pel return ja que sino amb el restore all s esborraria
 	RESTORE_ALL
 	iret
+
+ENTRY(task_switch)
+	pushl	%ebp
+	movl	%esp, %ebp
+
+	pushl	%esi // guardem ESI,EDI i EBX
+	pushl	%edi
+	pushl	%ebx
+
+	movl	8(%ebp), %eax // parametre union task_union *new de la funcio inner_task_switch
+	pushl	%eax
+
+	call	inner_task_switch
+
+	addl	$4, %esp // esborrem el parametre de la funcio inner_task_switch
+
+	popl	%ebx
+	popl	%edi
+	popl 	%esi
+	popl	%ebp
+
+	ret
