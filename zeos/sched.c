@@ -11,6 +11,19 @@ char initial_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned(4096))); // Space 
 
 struct list_head ready_queue;
 struct task_struct *init_task;
+struct task_struct *idle_task;
+
+/* get_DIR - Returns the Page Directory address for task 't' */
+page_table_entry * get_DIR (struct task_struct *t)
+{
+       return t->dir_pages_baseAddr;
+}
+
+/* get_PT - Returns the Page Table address for task 't' */
+page_table_entry * get_PT (struct task_struct *t)
+{
+       return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
+}
 
 void cpu_idle(void)
 {
@@ -23,7 +36,29 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
+	int Dir = alloc_frame();
+	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
+	clear_page_table(DirAddress);
 
+	page_table_entry *SystemPT = get_PT(init_task);
+	DirAddress[0].entry = 0;
+	DirAddress[0].bits.pbase_addr = (unsigned int)SystemPT >> 12;
+    DirAddress[0].bits.present = 1;
+    DirAddress[0].bits.rw = 1;
+    DirAddress[0].bits.user = 0;
+
+	int PCB = alloc_frame();
+	union task_union *idle_union = (union task_union *) (PCB << 12);
+	struct task_struct *idle_pcb = &(idle_union->task);
+
+	list_del(&(idle_pcb->list));
+	idle_pcb->PID = 0;
+    idle_pcb->dir_pages_baseAddr = DirAddress;
+	idle_union->stack[KERNEL_STACK_SIZE - 1] = (unsigned long) cpu_idle; // guardem l'adreça de cpu_idle per fer el task switch
+    idle_union->stack[KERNEL_STACK_SIZE - 2] = 0; // guardem valor inicial registre EBP (0)
+    idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem la posició del registre ESP al camp kernel_esp del PCB
+
+    idle_task = idle_pcb;
 }
 
 void init_task1(void)
@@ -78,16 +113,3 @@ void init_sched()
 {
 
 }
-
-/* get_DIR - Returns the Page Directory address for task 't' */
-page_table_entry * get_DIR (struct task_struct *t)
-{
-       return t->dir_pages_baseAddr;
-}
-
-/* get_PT - Returns the Page Table address for task 't' */
-page_table_entry * get_PT (struct task_struct *t)
-{
-       return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
-}
-
