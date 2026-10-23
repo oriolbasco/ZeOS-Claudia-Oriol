@@ -140,3 +140,7 @@ ENTRY(task_switch)
 	popl	%ebp
 
 	ret
+
+ENTRY(switch_stack)
+	pushl	%ebp
+	movl	%esp, %ebp
