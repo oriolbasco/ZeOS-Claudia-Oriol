@@ -198,6 +198,9 @@ void setIdt()
   setInterruptHandler(33, keyboard_handler, 0);	
   setInterruptHandler(14, my_page_fault_handler, 0);	
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
+  
+  setTrapHandler(0x93, system_call_handler, 3);
+  
 
   setTrapHandler(0x93, system_call_handler, 3);
 
