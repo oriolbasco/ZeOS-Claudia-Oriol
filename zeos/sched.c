@@ -42,12 +42,6 @@ void init_idle (void)
 	set_ss_pag(SystemPT, Dir, Dir, 0);
 	clear_page_table(DirAddress);
 
-	DirAddress[0].entry = 0;
-	DirAddress[0].bits.pbase_addr = (unsigned int)SystemPT >> 12;
-    DirAddress[0].bits.present = 1;
-    DirAddress[0].bits.rw = 1;
-    DirAddress[0].bits.user = 0;
-
 	int PCB = alloc_frame();
 	set_ss_pag(SystemPT, PCB, PCB, 0);
 	union task_union *idle_union = (union task_union *) (PCB << 12);
@@ -57,7 +51,7 @@ void init_idle (void)
     idle_pcb->dir_pages_baseAddr = DirAddress;
 	idle_union->stack[KERNEL_STACK_SIZE - 1] = (unsigned long) cpu_idle; // guardem l'adreça de cpu_idle per fer el task switch
     idle_union->stack[KERNEL_STACK_SIZE - 2] = 0; // guardem valor inicial registre EBP (0)
-    idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem la posició del registre ESP al camp kernel_esp del PCB
+    idle_pcb->kernel_esp0 = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem la posició del registre ESP al camp kernel_esp del PCB
 
     idle_task = idle_pcb;
 }
@@ -109,8 +103,8 @@ void inner_task_switch(union task_union* new)
 
 	set_cr3(newDir);
 
-	/**current()->kernel_esp0 = %ebp
-	 * %esp = new->task.kernel_esp0
+	/**current()->kernel_esp = %ebp
+	 * %esp = new->task.kernel_esp
 	 */
 	switch_stack();
 }
