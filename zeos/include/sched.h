@@ -13,6 +13,7 @@
 
 extern struct list_head ready_queue;
 extern struct task_struct *init_task;
+extern struct task_struct *idle_task;
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
@@ -43,6 +44,8 @@ void init_idle(void);
 void init_sched(void);
 
 void task_switch(union task_union *new);
+
+void switch_stack(unsigned int *save_kernel_esp, unsigned int new_kernel_esp);
 
 struct task_struct * current();
 
