@@ -59,41 +59,41 @@ void init_idle (void)
 
 void init_task1(void)
 {
-	int Dir = alloc_frame();
-	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
-	clear_page_table(DirAddress);
+    int Dir = alloc_frame(); // reservem un frame per el nou dir
+    page_table_entry *DirAddress = (page_table_entry *) (Dir << 12); // definim un punter al dir d'init
+    clear_page_table(DirAddress);
 
-	int SystemPT = alloc_frame();
-	page_table_entry *SPTAddress = (page_table_entry *) (SystemPT << 12);
-	clear_page_table(SPTAddress);
+    int SystemPT = alloc_frame(); // reservem un frame per la taula de pagines de sistema
+    page_table_entry *SPTAddress = (page_table_entry *) (SystemPT << 12); // definim un punter a la taula de pagines de sistema
+    clear_page_table(SPTAddress);
 
-	int UserPT = alloc_frame();
-	page_table_entry *UPTAddress = (page_table_entry *) (UserPT << 12);
-	clear_page_table(UPTAddress);
+    int UserPT = alloc_frame(); // reservem un frame per la taula de pagines d usuari
+    page_table_entry *UPTAddress = (page_table_entry *) (UserPT << 12); // definim un punter a la taula de pagines d'usuari
+    clear_page_table(UPTAddress);
 
-	set_kernel_pages(SPTAddress);
-	set_user_pages(UPTAddress);
+    set_kernel_pages(SPTAddress); // omplim la taula de pagines de sistema amb les pagines del kernel
+    set_user_pages(UPTAddress); // reservem frames pel codi i dades d'usuari i els assignem a la taula de pagines d'usuari
 
-	set_ss_pag(DirAddress, 0, SystemPT, 0);
-	set_ss_pag(DirAddress, 1, UserPT, 1);
+    set_ss_pag(DirAddress, 0, SystemPT, 0); // nova entrada a dirInit que asigna entrada 0 del dir amb la taula de pagines de sistema
+    set_ss_pag(DirAddress, 1, UserPT, 1); // nova entrada a dirInit que asigna entrada 1 del dir amb la taula de pagines d'usuari
 
-	int PCB = alloc_frame();
-	union task_union *task1_union = (union task_union *) (PCB << 12);
-	struct task_struct *task1 = &(task1_union->task);
+    int PCB = alloc_frame(); // reservem espai pel pcb
+    union task_union *task1_union = (union task_union *) (PCB << 12); // associem a aquest espai el union
+    struct task_struct *task1 = &(task1_union->task);
 
-	set_ss_pag(SPTAddress, Dir, Dir, 0);
-	set_ss_pag(SPTAddress, SystemPT, SystemPT, 0);
-    set_ss_pag(SPTAddress, UserPT, UserPT, 0);
-    set_ss_pag(SPTAddress, PCB, PCB, 0);
+    set_ss_pag(SPTAddress, Dir, Dir, 0); // nova entrada a la taula de pagines de sistema amb dirInit -> dirInit
+    set_ss_pag(SPTAddress, SystemPT, SystemPT, 0); // creem una entrada a la taula de pagines de sistema per ella mateixa -> ella mateixa
+    set_ss_pag(SPTAddress, UserPT, UserPT, 0); // creem una entrada a la taula de pagines de sistema per la taula d'usuari -> taula d'usuari
+    set_ss_pag(SPTAddress, PCB, PCB, 0); // creem una entrada a la taula de pagines de sistema per pcb -> pcb
 
-	task1->PID = 1;
-	task1->dir_pages_baseAddr = DirAddress;
+    task1->PID = 1;
+    task1->dir_pages_baseAddr = DirAddress;
 
-	set_cr3(DirAddress);
+    set_cr3(DirAddress); // el dir d'init passa a ser l'espai d'adreces actiu
 
-	init_task = task1;
+    init_task = task1;
 
-	tss.esp0 = (unsigned long) &(task1_union->stack[KERNEL_STACK_SIZE]);
+    tss.esp0 = (unsigned long) &(task1_union->stack[KERNEL_STACK_SIZE]); // guardem el top de la pila de sistema d'init per les entrades des d'usuari
 }
 
 void inner_task_switch(union task_union* new)
