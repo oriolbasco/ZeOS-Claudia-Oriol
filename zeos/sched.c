@@ -79,17 +79,8 @@ void init_task1(void)
 	set_kernel_pages(SPTAddress);
 	set_user_pages(UPTAddress);
 
-    DirAddress[0].entry = 0;
-    DirAddress[0].bits.pbase_addr = SystemPT;
-    DirAddress[0].bits.present = 1;
-    DirAddress[0].bits.rw = 1;
-    DirAddress[0].bits.user = 0;
-
-    DirAddress[1].entry = 0;
-    DirAddress[1].bits.pbase_addr = UserPT;
-    DirAddress[1].bits.present = 1;
-    DirAddress[1].bits.rw = 1;
-    DirAddress[1].bits.user = 1;
+	set_ss_pag(DirAddress, SystemPT, SystemPT, 0);
+	set_ss_pag(DirAddress, UserPT, UserPT, 1);
 
 	int PCB = alloc_frame();
 	union task_union *task1_union = (union task_union *) (PCB << 12);
