@@ -4,6 +4,7 @@
 
 #include <asm.h>
 #include <segment.h>
+#include <errno.h>
 
 /**************************************************/
 /**** Save & Restore ******************************/
@@ -35,20 +36,20 @@
 /**************************************************/
 
 #define SAVE_ALL \
-      pushl %gs; \
-      pushl %fs; \
-      pushl %es; \
-      pushl %ds; \
-      pushl %eax; \
-      pushl %ebp; \
-      pushl %edi; \
-      pushl %esi; \
-      pushl %ebx; \
-      pushl %ecx; \
-      pushl %edx; \
-      movl $__KERNEL_DS, %edx;    \
-      movl %edx, %ds;           \
-      movl %edx, %es
+	pushl %gs; \
+	pushl %fs; \
+	pushl %es; \
+	pushl %ds; \
+	pushl %eax; \
+	pushl %ebp; \
+	pushl %edi; \
+	pushl %esi; \
+	pushl %ebx; \
+	pushl %ecx; \
+	pushl %edx; \
+	movl $__KERNEL_DS, %edx;    \
+	movl %edx, %ds;           \
+	movl %edx, %es
 
 #define RESTORE_ALL \
 	popl	%edx; \
@@ -88,27 +89,66 @@ ENTRY(clock_handler)
 ENTRY(my_page_fault_handler)
 	SAVE_ALL
 	
-	pushl %esp //dir de top pila
+	pushl %esp // dir de top pila
 	call my_page_fault_routine
 	
-	RESTORE_ALL
-	iret
-	
+	addl $4, %esp // esborrem el parametre de la funcio
 
-//el handler de todas las system calls
+	RESTORE_ALL
+	
+	addl $4, %esp // hem de treure el error code de la pila
+	iret
+
 ENTRY(system_call_handler)
 	SAVE_ALL
-	cmpl $0, %EAX
-	jl err
-	cmpl $MAX_SYSCALL, %EAX
-	jg err
-	call *sys_call_table(, %EAX, 0x04)
+
+	cmpl $0, %eax // mirar si el index de la sys call es negatiu
+	jl	err
+	cmpl $MAX_SYSCALL, %eax // mirar si el index de la sys call es mes gran que el maxim
+	jg	err
+
+	pushl %ebx
+	call *sys_call_table(, %eax, 4) // entrem a la syscall pel seu index
+	addl $4, %esp
 	jmp fin
-err:
-	//movl $-ENOSYS, %EAX
+
+err: 
+	movl $-ENOSYS, %eax
 fin:
-	movl %EAX, 0x18(%esp)
+	movl %eax, 0x18(%esp) // guardem directament a la pila el valor de eax pel return ja que sino amb el restore all s esborraria
 	RESTORE_ALL
 	iret
-	
 
+ENTRY(task_switch)
+	pushl	%ebp
+	movl	%esp, %ebp
+
+	pushl	%esi // guardem ESI,EDI i EBX
+	pushl	%edi
+	pushl	%ebx
+
+	movl	8(%ebp), %eax // parametre union task_union *new de la funcio inner_task_switch
+	pushl	%eax
+
+	call	inner_task_switch
+
+	addl	$4, %esp // esborrem el parametre de la funcio inner_task_switch
+
+	popl	%ebx
+	popl	%edi
+	popl 	%esi
+	popl	%ebp
+
+	ret
+
+ENTRY(switch_stack)
+	pushl	%ebp
+	movl	%esp, %ebp
+
+	movl	8(%ebp), %eax // agafem parametre &current()->kernel_esp
+    movl	%ebp, (%eax) // curent()->kernel_esp = ebp
+
+	movl	12(%ebp), %esp // esp = new()->task.kernel_esp
+
+	popl	%ebp
+	ret

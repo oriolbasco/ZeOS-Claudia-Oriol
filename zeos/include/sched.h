@@ -11,14 +11,18 @@
 
 #define KERNEL_STACK_SIZE	1024
 
+extern struct list_head ready_queue;
+extern struct task_struct *init_task;
+extern struct task_struct *idle_task;
+
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
-  page_table_entry * dir_pages_baseAddr; //page directory de ese proceso
+  page_table_entry * dir_pages_baseAddr;
   unsigned int quantum; /* Temps que li queda a un proces a dins de la cpu */
   struct list_head list;	/* node del proces a la ready queue */
-  unsigned int dir_pages_baseAddr;
+  unsigned int kernel_esp;
 };
 
 union task_union {
@@ -39,10 +43,16 @@ void init_idle(void);
 
 void init_sched(void);
 
+void task_switch(union task_union *new);
+
+void switch_stack(unsigned int *save_kernel_esp, unsigned int new_kernel_esp);
+
 struct task_struct * current();
 
-page_table_entry * get_PT (struct task_struct *t) ;
+page_table_entry * get_PT (struct task_struct *t);
 
-page_table_entry * get_DIR (struct task_struct *t) ;
+page_table_entry * get_DIR (struct task_struct *t);
+
+void inner_task_switch(union task_union *new);
 
 #endif  /* __SCHED_H__ */
