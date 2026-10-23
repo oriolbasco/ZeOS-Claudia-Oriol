@@ -97,6 +97,23 @@ void init_task1(void)
 	tss.esp0 = &(task1_union->stack[KERNEL_STACK_SIZE]);
 }
 
+<<<<<<< HEAD
+=======
+void inner_task_switch(union task_union* new)
+{
+	page_table_entry * newDir = get_DIR(&(new->task));
+
+	//apunta al final del stac del nou proces
+	tss.esp0 = (unsigned long) &(new->stack[KERNEL_STACK_SIZE]);
+	//cambia el page directoy al nuevo
+	set_cr3(newDir);
+
+	/**current()->kernel_esp0 = %ebp
+	 * %esp = new->task.kernel_esp0 //canvi de stack al nou proces (per on anava)
+	 */
+	switch_stack();
+}
+>>>>>>> 4e9c400 (getpid fet)
 
 void init_sched()
 {
