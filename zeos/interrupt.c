@@ -10,6 +10,7 @@
 #include <utils.h>
 #include <devices.h>
 #include <errno.h>
+#include <sched.h>
 
 #include <zeos_interrupt.h>
 #include <zeos_mm.h>
