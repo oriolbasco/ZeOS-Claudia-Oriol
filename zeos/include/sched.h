@@ -21,7 +21,7 @@ struct task_struct {
   page_table_entry * dir_pages_baseAddr;
   unsigned int quantum; /* Temps que li queda a un proces a dins de la cpu */
   struct list_head list;	/* node del proces a la ready queue */
-  unsigned int dir_pages_baseAddr;
+  unsigned int kernel_esp;
 };
 
 union task_union {
@@ -41,6 +41,8 @@ void init_task1(void);
 void init_idle(void);
 
 void init_sched(void);
+
+void task_switch(union task_union *new);
 
 struct task_struct * current();
 
