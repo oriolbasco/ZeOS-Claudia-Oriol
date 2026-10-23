@@ -14,8 +14,6 @@ int gettime();
 void perror(void);
 int strlen(char *a);
 
-void perror(char *a);
-
 int write (int fd, char * buffer, int size);
 
 #endif  /* __LIBC_H__ */

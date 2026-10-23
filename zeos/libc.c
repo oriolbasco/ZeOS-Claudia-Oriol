@@ -44,7 +44,6 @@ int strlen(char *a)
   return i;
 }
 
-<<<<<<< HEAD
 
 void perror(void) 
 {
@@ -52,10 +51,4 @@ void perror(void)
   else if(errno == EACCES) write(1, "\nyou don't have write permissions\n", sizeof("\nyou don't have write permissions\n"));
   else if(errno == EFAULT) write(1, "\nbad adress\n", sizeof("\nbad adress\n")); //problema con una DIRECCIÓN
   else if(errno == EINVAL) write(1, "\ninvalid argument\n", sizeof("\ninvalid argument\n")); //problema con el VALOR de un argumento
-=======
-//escribe mensaje de error
-//debo tener errno i perror!!!!
-void perror(void) {
-  
->>>>>>> claudia
 }

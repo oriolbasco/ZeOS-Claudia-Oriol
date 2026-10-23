@@ -99,26 +99,6 @@ ENTRY(my_page_fault_handler)
 	addl $4, %esp // hem de treure el error code de la pila
 	iret
 
-ENTRY(system_call_handler)
-	SAVE_ALL
-
-	cmpl $0, %eax // mirar si el index de la sys call es negatiu
-	jl	err
-	cmpl $MAX_SYSCALL, %eax // mirar si el index de la sys call es mes gran que el maxim
-	jg	err
-
-	pushl %ebx
-	call *sys_call_table(, %eax, 4) // entrem a la syscall pel seu index
-	addl $4, %esp
-	jmp fin
-
-err: 
-	movl $-ENOSYS, %eax
-fin:
-	movl %eax, 0x18(%esp) // guardem directament a la pila el valor de eax pel return ja que sino amb el restore all s esborraria
-	RESTORE_ALL
-	iret
-
 ENTRY(task_switch)
 	pushl	%ebp
 	movl	%esp, %ebp
@@ -144,6 +124,14 @@ ENTRY(task_switch)
 ENTRY(switch_stack)
 	pushl	%ebp
 	movl	%esp, %ebp
+
+	movl	8(%ebp), %eax // agafem parametre &current()->kernel_esp
+    movl	%ebp, (%eax) // curent()->kernel_esp = ebp
+
+	movl	12(%ebp), %esp // esp = new()->task.kernel_esp
+
+	popl	%ebp
+	ret
 	
 
 //el handler de todas las system calls
@@ -161,13 +149,3 @@ fin:
 	movl %EAX, 0x18(%esp)
 	RESTORE_ALL
 	iret
-	
-
-
-	movl	8(%ebp), %eax // agafem parametre &current()->kernel_esp
-    movl	%ebp, (%eax) // curent()->kernel_esp = ebp
-
-	movl	12(%ebp), %esp // esp = new()->task.kernel_esp
-
-	popl	%ebp
-	ret

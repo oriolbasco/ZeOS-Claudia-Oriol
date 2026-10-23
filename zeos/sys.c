@@ -91,24 +91,3 @@ int sys_ni_syscall()
 {
 	return -ENOSYS;
 }
-
-//acces_okei --> para ver si un puntero es correcto(nos viene del usuario); para el puntero 
-//buffer pequeño para ir haciendo copy_from_user???
-int sys_write(void *parmetres) {
-  //check parametres:
-  //if(check_fd(fd,ESCRIPTURA) != 0) return -1;
-  //else if(buffer == NULL) return -1;
-  //else if(size <= 0) return -1;
-  //aqui hem de utlilitzar copy_from_user???
-  
-  int fd;
-  char *buffer;
-  int size;
-
-  fd = *((int *)parmetres);
-  buffer = *((char **)(parmetres + sizeof(int)));
-  size = *((int *)(parmetres + 2*sizeof(int)));
-  
-  
-  return sys_write_console(buffer, size);
-}

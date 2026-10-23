@@ -12,11 +12,11 @@ main(void)
 
   //char* p = 0;
   //*p = 'x';
-  int ret = write(1, buff, sizeof(buff));
-  
+  //int ret = write(1, buff, sizeof(buff));
+  /*
   char buffTestSize[500]; // prova buffer mes que 256
   for (int i = 0; i < 500; ++i) buffTestSize[i] = 'a';
-  if (write(1,buffTestSize,500) < 0) perror();
+  //if (write(1,buffTestSize,500) < 0) perror();
 
   if (write(1, 0, 10) < 0) perror(); // prova punter buffer incorrecte
   if (write(1, "Test", -5) < 0) perror(); // prova size dolent
@@ -41,7 +41,7 @@ main(void)
   // joc de prova page fault
   //char* p = 0;
   //*p = 'x';
-
+*/
   fork();
 
   while(1) { }
