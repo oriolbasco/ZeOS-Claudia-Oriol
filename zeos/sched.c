@@ -106,7 +106,7 @@ void inner_task_switch(union task_union* new)
 	/**current()->kernel_esp = %ebp
 	 * %esp = new->task.kernel_esp
 	 */
-	switch_stack();
+	switch_stack(new()->task.kernel_esp);
 }
 
 void init_sched()

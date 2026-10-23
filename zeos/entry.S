@@ -145,4 +145,5 @@ ENTRY(switch_stack)
 	pushl	%ebp
 	movl	%esp, %ebp
 
-	and		
+    movl %esp, %eax
+    andl $0xFFFFF000, %eax
