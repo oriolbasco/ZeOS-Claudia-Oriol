@@ -80,6 +80,14 @@ int sys_getpid()
   return current()->PID;
 }
 
+int sys_fork() {
+  int PCB = alloc_frame();
+	union task_union *taskFill_union = (union task_union *) (PCB << 12); //nou espai fisic del fill
+  set_ss_pag(get_PT(current()), PCB, PCB, 0); //afegim al page table del pare el frame del fill
+  //copio espai de memoria del pare al fill
+  copy_data(current(), taskFill_union, PAGE_SIZE);
+}
+
 int sys_ni_syscall()
 {
 	return -38; /*ENOSYS*/

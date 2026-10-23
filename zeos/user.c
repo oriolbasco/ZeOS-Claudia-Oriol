@@ -14,7 +14,35 @@ int __attribute__ ((__section__(".text.main")))
   //*p = 'x';
   int ret = write(1, buff, sizeof(buff));
   
-  if(ret < 0) perror();
+  char buffTestSize[500]; // prova buffer mes que 256
+  for (int i = 0; i < 500; ++i) buffTestSize[i] = 'a';
+  if (write(1,buffTestSize,500) < 0) perror();
+
+  if (write(1, 0, 10) < 0) perror(); // prova punter buffer incorrecte
+  if (write(1, "Test", -5) < 0) perror(); // prova size dolent
+
+  //proba de gettime
+  if (write(1, "\nProva gettime: \n", sizeof("\nProva gettime: \n")) < 0) perror();
   
+  int t1 = gettime();
+  
+  itoa(t1, buff);
+  write(1, buff, strlen(buff));
+  write(1, "\n", 1);
+
+  for(int i = 0; i < 500000; ++i); //delay;
+  
+  int t2 = gettime();
+  
+  itoa(t2, buff);
+  write(1, buff, strlen(buff));
+  write(1, "\n", 1);
+
+  // joc de prova page fault
+  //char* p = 0;
+  //*p = 'x';
+
+  fork();
+
   while(1) { }
 }

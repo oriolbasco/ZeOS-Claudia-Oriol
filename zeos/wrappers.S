@@ -19,12 +19,10 @@ ENTRY(write)
   mov %eax, errno
   mov $-1, %eax
 
-<<<<<<< HEAD
 continuar:
   mov %ebp, %esp
   popl %ebp
   ret
-=======
 	pushl %ebx // hem de guardar el valor actual d ebx pq necessitem el registre pel pas de parametres
 
 	lea 8(%ebp), %ebx // posem a ebx l adreça de la pila on començen els parametres
@@ -65,4 +63,14 @@ ENTRY(getpid)
 
 	popl %ebp
 	ret
->>>>>>> 4e9c400 (getpid fet)
+
+
+ENTRY(fork)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl $2, %eax // pos a la sys_call_table 
+	int	$0x93 // activem la trap
+
+	popl %ebp
+	ret
