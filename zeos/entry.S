@@ -163,3 +163,11 @@ fin:
 	iret
 	
 
+
+	movl	8(%ebp), %eax // agafem parametre &current()->kernel_esp
+    movl	%ebp, (%eax) // curent()->kernel_esp = ebp
+
+	movl	12(%ebp), %esp // esp = new()->task.kernel_esp
+
+	popl	%ebp
+	ret

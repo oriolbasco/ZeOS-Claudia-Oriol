@@ -149,78 +149,64 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
-	int Dir = alloc_frame();
-	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
-	page_table_entry *SystemPT = get_PT(init_task);
-	set_ss_pag(SystemPT, Dir, Dir, 0);
+	int Dir = alloc_frame(); // reservem un frame per el nou dir
+	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12); // definim un punter al dir d'idle
+	page_table_entry *SPTAddress = get_PT(init_task); // nou punter a la taula de pagines de sistema
+	set_ss_pag(SPTAddress, Dir, Dir, 0); // nova entrada a la taula de pagines de sistema amb dirIdle -> dirIdle
 	clear_page_table(DirAddress);
+	set_ss_pag(DirAddress, 0, ((unsigned int) SPTAddress) >> 12, 0); // nova entrada a dirIdle que asigna entrada 0 del dir amb la taula de pagines de sistema
 
-	DirAddress[0].entry = 0;
-	DirAddress[0].bits.pbase_addr = (unsigned int)SystemPT >> 12;
-    DirAddress[0].bits.present = 1;
-    DirAddress[0].bits.rw = 1;
-    DirAddress[0].bits.user = 0;
-
-	int PCB = alloc_frame();
-	set_ss_pag(SystemPT, PCB, PCB, 0);
-	union task_union *idle_union = (union task_union *) (PCB << 12);
+	int PCB = alloc_frame(); // reservem espai pel pcb
+	set_ss_pag(SPTAddress, PCB, PCB, 0); // creem una entrada a la taula de pagines de sistema per pcb -> pcb
+	union task_union *idle_union = (union task_union *) (PCB << 12); // associem a aquest espai el union
 	struct task_struct *idle_pcb = &(idle_union->task);
 
 	idle_pcb->PID = 0;
     idle_pcb->dir_pages_baseAddr = DirAddress;
 	idle_union->stack[KERNEL_STACK_SIZE - 1] = (unsigned long) cpu_idle; // guardem l'adreça de cpu_idle per fer el task switch
     idle_union->stack[KERNEL_STACK_SIZE - 2] = 0; // guardem valor inicial registre EBP (0)
-    idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem la posició del registre ESP al camp kernel_esp del PCB
+    idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem l'adreça de l'EBP fals que hem posat a la pila
 
     idle_task = idle_pcb;
 }
 
 void init_task1(void)
 {
-	int Dir = alloc_frame();
-	page_table_entry *DirAddress = (page_table_entry *) (Dir << 12);
-	clear_page_table(DirAddress);
+    int Dir = alloc_frame(); // reservem un frame per el nou dir
+    page_table_entry *DirAddress = (page_table_entry *) (Dir << 12); // definim un punter al dir d'init
+    clear_page_table(DirAddress);
 
-	int SystemPT = alloc_frame();
-	page_table_entry *SPTAddress = (page_table_entry *) (SystemPT << 12);
-	clear_page_table(SPTAddress);
+    int SystemPT = alloc_frame(); // reservem un frame per la taula de pagines de sistema
+    page_table_entry *SPTAddress = (page_table_entry *) (SystemPT << 12); // definim un punter a la taula de pagines de sistema
+    clear_page_table(SPTAddress);
 
-	int UserPT = alloc_frame();
-	page_table_entry *UPTAddress = (page_table_entry *) (UserPT << 12);
-	clear_page_table(UPTAddress);
+    int UserPT = alloc_frame(); // reservem un frame per la taula de pagines d usuari
+    page_table_entry *UPTAddress = (page_table_entry *) (UserPT << 12); // definim un punter a la taula de pagines d'usuari
+    clear_page_table(UPTAddress);
 
-	set_kernel_pages(SPTAddress);
-	set_user_pages(UPTAddress);
+    set_kernel_pages(SPTAddress); // omplim la taula de pagines de sistema amb les pagines del kernel
+    set_user_pages(UPTAddress); // reservem frames pel codi i dades d'usuari i els assignem a la taula de pagines d'usuari
 
-    DirAddress[0].entry = 0;
-    DirAddress[0].bits.pbase_addr = SystemPT;
-    DirAddress[0].bits.present = 1;
-    DirAddress[0].bits.rw = 1;
-    DirAddress[0].bits.user = 0;
+    set_ss_pag(DirAddress, 0, SystemPT, 0); // nova entrada a dirInit que asigna entrada 0 del dir amb la taula de pagines de sistema
+    set_ss_pag(DirAddress, 1, UserPT, 1); // nova entrada a dirInit que asigna entrada 1 del dir amb la taula de pagines d'usuari
 
-    DirAddress[1].entry = 0;
-    DirAddress[1].bits.pbase_addr = UserPT;
-    DirAddress[1].bits.present = 1;
-    DirAddress[1].bits.rw = 1;
-    DirAddress[1].bits.user = 1;
+    int PCB = alloc_frame(); // reservem espai pel pcb
+    union task_union *task1_union = (union task_union *) (PCB << 12); // associem a aquest espai el union
+    struct task_struct *task1 = &(task1_union->task);
 
-	int PCB = alloc_frame();
-	union task_union *task1_union = (union task_union *) (PCB << 12);
-	struct task_struct *task1 = &(task1_union->task);
+    set_ss_pag(SPTAddress, Dir, Dir, 0); // nova entrada a la taula de pagines de sistema amb dirInit -> dirInit
+    set_ss_pag(SPTAddress, SystemPT, SystemPT, 0); // creem una entrada a la taula de pagines de sistema per ella mateixa -> ella mateixa
+    set_ss_pag(SPTAddress, UserPT, UserPT, 0); // creem una entrada a la taula de pagines de sistema per la taula d'usuari -> taula d'usuari
+    set_ss_pag(SPTAddress, PCB, PCB, 0); // creem una entrada a la taula de pagines de sistema per pcb -> pcb
 
-	set_ss_pag(SPTAddress, Dir, Dir, 0);
-	set_ss_pag(SPTAddress, SystemPT, SystemPT, 0);
-    set_ss_pag(SPTAddress, UserPT, UserPT, 0);
-    set_ss_pag(SPTAddress, PCB, PCB, 0);
+    task1->PID = 1;
+    task1->dir_pages_baseAddr = DirAddress;
 
-	task1->PID = 1;
-	task1->dir_pages_baseAddr = DirAddress;
+    set_cr3(DirAddress); // el dir d'init passa a ser l'espai d'adreces actiu
 
-	set_cr3(DirAddress);
+    init_task = task1;
 
-	init_task = task1;
-
-	tss.esp0 = &(task1_union->stack[KERNEL_STACK_SIZE]);
+    tss.esp0 = (unsigned long) &(task1_union->stack[KERNEL_STACK_SIZE]); // guardem el top de la pila de sistema d'init per les entrades des d'usuari
 }
 
 void inner_task_switch(union task_union* new)
@@ -229,16 +215,24 @@ void inner_task_switch(union task_union* new)
 
 	//apunta al final del stac del nou proces
 	tss.esp0 = (unsigned long) &(new->stack[KERNEL_STACK_SIZE]);
+<<<<<<< HEAD
 	//cambia el page directoy al nuevo
 	set_cr3(newDir);
 
 	/**current()->kernel_esp0 = %ebp
 	 * %esp = new->task.kernel_esp0 //canvi de stack al nou proces (per on anava)
+=======
+
+	set_cr3(newDir); // utilitzem el dir del nou proces
+
+	/**current()->kernel_esp = %ebp
+	 * %esp = new->task.kernel_esp
+>>>>>>> origin/main
 	 */
-	switch_stack();
+	switch_stack(&current()->kernel_esp, new->task.kernel_esp);
 }
 
 void init_sched()
 {
-
+	
 }
