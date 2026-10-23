@@ -74,6 +74,11 @@ int sys_gettime()
   return zeos_ticks;
 }
 
+int sys_getpid()
+{
+  return current()->PID;
+}
+
 int sys_ni_syscall()
 {
 	return -ENOSYS;
