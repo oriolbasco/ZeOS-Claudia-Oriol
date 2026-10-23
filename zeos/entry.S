@@ -144,3 +144,22 @@ ENTRY(task_switch)
 ENTRY(switch_stack)
 	pushl	%ebp
 	movl	%esp, %ebp
+	
+
+//el handler de todas las system calls
+ENTRY(system_call_handler)
+	SAVE_ALL
+	cmpl $0, %EAX
+	jl err
+	cmpl $MAX_SYSCALL, %EAX
+	jg err
+	call *sys_call_table(, %EAX, 0x04)
+	jmp fin
+err:
+	//movl $-ENOSYS, %EAX
+fin:
+	movl %EAX, 0x18(%esp)
+	RESTORE_ALL
+	iret
+	
+
