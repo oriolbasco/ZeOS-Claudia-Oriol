@@ -23,8 +23,6 @@ int check_fd(int fd, int permissions)
   return 0;
 }
 
-<<<<<<< HEAD
-=======
 /**
  * @name sys_write
  * @param st punter void, apunta al primer parametre de la funcio write guardat a la pila d'usuari
@@ -82,7 +80,6 @@ int sys_getpid()
   return current()->PID;
 }
 
->>>>>>> 4e9c400 (getpid fet)
 int sys_ni_syscall()
 {
 	return -38; /*ENOSYS*/
