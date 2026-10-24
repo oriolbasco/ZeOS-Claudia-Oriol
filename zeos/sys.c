@@ -80,11 +80,62 @@ int sys_getpid()
 }
 
 int sys_fork() {
-  int PCB = alloc_frame();
-	union task_union *taskFill_union = (union task_union *) (PCB << 12); //nou espai fisic del fill
-  set_ss_pag(get_PT(current()), PCB, PCB, 0); //afegim al page table del pare el frame del fill
-  //copio espai de memoria del pare al fill
-  copy_data(current(), taskFill_union, PAGE_SIZE);
+  struct task_struct *parent = current(); //PCB del pare
+  page_table_entry *system_pt = get_PT(parent); //punter a la taula de pagines de sistema del pare
+  int pcb_frame = alloc_frame(); //frame per al pcb del fill
+  if (pcb_frame == -1) return -EAGAIN; //no hi ha
+
+  set_ss_pag(system_pt, pcb_frame, pcb_frame, 0); //nova entrada a la TP del sistema
+
+  union task_union *child = (union task_union *)((unsigned int)pcb_frame << 12);
+  copy_data(parent, child, PAGE_SIZE); //fill hereda el context del pare
+  struct task_struct *child_pcb = &child->task;
+
+  int dir_frame = alloc_frame(); //frame per al directori de pagines del fill
+  if (dir_frame == -1) return -EAGAIN; //no hi ha
+  set_ss_pag(system_pt, dir_frame, dir_frame, 0); //nova entrada a la TP del sistema
+
+  int user_pt_frame = alloc_frame(); //frame per a la taula de pagines d'usuari del fill
+  if (user_pt_frame == -1) return -EAGAIN; //no hi
+  set_ss_pag(system_pt, user_pt_frame, user_pt_frame, 0); //nova entrada a la TP del sistema
+
+  page_table_entry *child_dir = (page_table_entry *)((unsigned int)dir_frame << 12);
+  page_table_entry *child_user_pt = (page_table_entry *)((unsigned int)user_pt_frame << 12);
+  clear_page_table(child_dir);
+  clear_page_table(child_user_pt);
+
+  /* Entrada 0: misma tabla de sistema que el padre. no seria get_PT ?? porque no se puede? */ 
+  child_dir[0] = get_DIR(parent)[0];
+
+  /* Entrada 1: tabla de usuario nueva. */
+  set_ss_pag(child_dir, 1, user_pt_frame, 1);
+
+  child_pcb->dir_pages_baseAddr = child_dir;
+
+  page_table_entry *parent_user_pt = (page_table_entry *)((unsigned int)get_DIR(parent)[1].bits.pbase_addr << 12);
+
+  // Copiem les entrades de codi d'usuari del pare al fill
+  for (int i = 0; i < NUM_PAG_CODE; ++i) {
+      int page = NUM_PAG_DATA + i;
+      child_user_pt[page] = parent_user_pt[page];
+  }
+
+  for (int i = 0; i < NUM_PAG_DATA; i++) {
+    if (parent_user_pt[i].bits.present == 1) {
+      int frame = alloc_frame();
+      if (frame == -1) return -EAGAIN; //no hi ha
+      set_ss_pag(child_user_pt, i, frame, 1);
+      copy_data((void *)((unsigned int)parent_user_pt[i].bits.pbase_addr << 12), (void *)((unsigned int)frame << 12), PAGE_SIZE);
+    }
+  }
+
+  child_pcb->kernel_esp = (unsigned long) &(child->stack[KERNEL_STACK_SIZE - 2]); //guardem l'adreça de l'EBP fals que hem posat a la pila
+  child_pcb->quantum = parent->quantum; //hereda el quantum del pare
+  child_pcb->PID = assign_PID(); //assignem un nou PID al fill
+
+  INIT_LIST_HEAD(&(child_pcb->list)); //inicialitzem la llista del fill
+  list_add_tail(&(child_pcb->list), &ready_queue); //afegim
+  return child_pcb->PID; //retornem el PID del fill
 }
 
 int sys_ni_syscall()

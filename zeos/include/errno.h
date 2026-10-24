@@ -6,5 +6,6 @@
 #define EINVAL 22 
 #define ENOSYS 38
 #define EACCES 13
+#define EAGAIN 11
 
 #endif

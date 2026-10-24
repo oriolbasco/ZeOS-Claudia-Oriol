@@ -8,11 +8,7 @@
 #include <hardware.h>
 
 char initial_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned(4096))); // Space for the initial system stack
-
-struct list_head ready_queue;
-struct task_struct *init_task;
-struct task_struct *idle_task;
-
+static int next_pid = 2;
 
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t)
@@ -120,4 +116,9 @@ void inner_task_switch(union task_union* new)
 void init_sched()
 {
 	
+}
+
+int assign_PID(void)
+{
+    return next_pid++;
 }

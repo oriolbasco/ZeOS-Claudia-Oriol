@@ -27,7 +27,7 @@ main(void)
   int t1 = gettime();
   
   itoa(t1, buff);
-  write(1, buff, strlen(buff));
+  if(write(1, buff, strlen(buff)) < 0) perror();
   write(1, "\n", 1);
 
   for(int i = 0; i < 500000; ++i); //delay;
@@ -41,7 +41,7 @@ main(void)
   // joc de prova page fault
   //char* p = 0;
   //*p = 'x';
-*/
+*/  
   fork();
 
   while(1) { }
