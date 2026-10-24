@@ -46,8 +46,5 @@ main(void)
   *p = 'x';
  */
 
-
-  
-
   while(1) { }
 }
