@@ -12,8 +12,6 @@ main(void)
 
 
 /**
- * JOCS DE PROVA ENTREGA 1
- * 
   if (write(1, "\nProva write\n", 13) < 0) perror();
   if (write(5, "\nProva write erronia\n", 13) < 0) perror(); // error fd incorrecte
   
@@ -42,12 +40,8 @@ main(void)
   write(1, "\n", 1);
 
   // joc de prova page fault
-  char* p = 0;
-  *p = 'x';
- */
-
-
-  
-
+  // char* p = 0;
+  // *p = 'x';
+  */
   while(1) { }
 }

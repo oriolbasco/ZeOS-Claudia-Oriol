@@ -6,28 +6,38 @@
 # 1 "wrappers.S"
 # 1 "include/asm.h" 1
 # 2 "wrappers.S" 2
-# 1 "include/segment.h" 1
-# 3 "wrappers.S" 2
 
 .globl write; .type write, @function; .align 0; write:
+ pushl %ebp
+ movl %esp, %ebp
 
-  pushl %ebp
-  mov %esp, %ebp
+ pushl %ebx
 
-  leal 8(%ebp), %ebx
+ lea 8(%ebp), %ebx
 
-  mov $4, %eax
-  INT $0x93
+ movl $4, %eax
+ int $0x93
+
+ popl %ebx
+
+ cmp $0, %eax
+ jge ok
+
+ negl %eax
+    movl %eax, errno
+ movl $-1, %eax
+
+ok:
+ popl %ebp
+ ret
 
 
-  cmp 0, %eax
-  jge continuar
+.globl gettime; .type gettime, @function; .align 0; gettime:
+ pushl %ebp
+ movl %esp, %ebp
 
-  negl %eax
-  mov %eax, errno
-  mov $-1, %eax
+ movl $10, %eax
+ int $0x93
 
-continuar:
-  mov %ebp, %esp
-  popl %ebp
-  ret
+ popl %ebp
+ ret
