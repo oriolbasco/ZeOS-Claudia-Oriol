@@ -85,6 +85,10 @@ ENTRY(clock_handler)
 	
 	RESTORE_ALL
 	iret
+
+ENTRY(ret_from_fork)
+    RESTORE_ALL
+    iret
 	
 ENTRY(my_page_fault_handler)
 	SAVE_ALL

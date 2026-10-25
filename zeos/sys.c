@@ -14,6 +14,7 @@
 #define chunk 256
 
 extern int zeos_ticks;
+extern void ret_from_fork(void);
 
 int check_fd(int fd, int permissions)
 {
@@ -114,23 +115,38 @@ int sys_fork() {
 
   page_table_entry *parent_user_pt = (page_table_entry *)((unsigned int)get_DIR(parent)[1].bits.pbase_addr << 12);
 
-  // Copiem les entrades de codi d'usuari del pare al fill
-  for (int i = 0; i < NUM_PAG_CODE; ++i) {
-      int page = NUM_PAG_DATA + i;
-      child_user_pt[page] = parent_user_pt[page];
-  }
+  // Copiem les entrades de codi del pare al fill, compartir codi
+  copy_data(&parent_user_pt[NUM_PAG_DATA], &child_user_pt[NUM_PAG_DATA], NUM_PAG_CODE * sizeof(page_table_entry));
 
+  //copiem pila+dades d'usuari en nous frames de memoria
+  const unsigned int tmp = NUM_PAG_DATA + NUM_PAG_CODE; //entrada lliure 8+20
   for (int i = 0; i < NUM_PAG_DATA; i++) {
     if (parent_user_pt[i].bits.present == 1) {
-      int frame = alloc_frame();
+      int frame = alloc_frame(); //reservem un frame del fill
       if (frame == -1) return -EAGAIN; //no hi ha
-      set_ss_pag(child_user_pt, i, frame, 1);
-      copy_data((void *)((unsigned int)parent_user_pt[i].bits.pbase_addr << 12), (void *)((unsigned int)frame << 12), PAGE_SIZE);
+      set_ss_pag(child_user_pt, i, frame, 1); //nova entrada a la TP d'usuari del fill
+
+      /* La dirección temporal del padre apunta al frame del hijo. */
+      set_ss_pag(parent_user_pt, tmp, frame, 0);
+
+      //copiem una pagina de dades del pare al fill
+      copy_data((void *)(L_USER_START + i * PAGE_SIZE), (void *)(L_USER_START + tmp * PAGE_SIZE), PAGE_SIZE);
+
+      del_ss_pag(parent_user_pt, tmp); //eliminem entrada temporal del pare
+      set_cr3(get_DIR(parent)); //buidem TLB
+      //reultilitzem la mateixa entrada temporal per a les 20 pagines.
     }
   }
 
-  child_pcb->kernel_esp = (unsigned long) &(child->stack[KERNEL_STACK_SIZE - 2]); //guardem l'adreça de l'EBP fals que hem posat a la pila
-  child_pcb->quantum = parent->quantum; //hereda el quantum del pare
+  /* Valor que recibirá el hijo como resultado de fork(). */
+  child->stack[KERNEL_STACK_SIZE - 10] = 0;
+
+  /* Dos posiciones que consumirá switch_stack(). */
+  child->stack[KERNEL_STACK_SIZE - 18] = 0;
+  child->stack[KERNEL_STACK_SIZE - 17] = (unsigned long)ret_from_fork;
+
+  child_pcb->kernel_esp = (unsigned int)&child->stack[KERNEL_STACK_SIZE - 18];
+
   child_pcb->PID = assign_PID(); //assignem un nou PID al fill
 
   INIT_LIST_HEAD(&(child_pcb->list)); //inicialitzem la llista del fill
