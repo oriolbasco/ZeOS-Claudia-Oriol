@@ -2,6 +2,9 @@
 #include <segment.h>
 
 ENTRY(write)
+	pushl	%ebp
+	movl	%esp, %ebp
+
 	pushl %ebx // hem de guardar el valor actual d ebx pq necessitem el registre pel pas de parametres
 
 	lea 8(%ebp), %ebx // posem a ebx l adreça de la pila on començen els parametres

@@ -149,7 +149,7 @@ int sys_fork()
   //direccio de ret_from_fork
   child_union->stack[KERNEL_STACK_SIZE - 17] = (unsigned long)ret_from_fork;
 
-  child_pcb->kernel_esp = (unsigned int)&child->stack[KERNEL_STACK_SIZE - 18];
+  child_pcb->kernel_esp = (unsigned int)&child_union->stack[KERNEL_STACK_SIZE - 18];
 
   child_pcb->PID = assign_PID(); //assignem un nou PID al fill
 
