@@ -10,9 +10,12 @@ extern int errno;
 
 void itoa(int a, char *b);
 int gettime();
-void perror(void);
 int strlen(char *a);
 int write (int fd, char * buffer, int size);
 int fork(void);
+
+void perror(void);
+
+int write (int fd, char * buffer, int size);
 
 #endif  /* __LIBC_H__ */
