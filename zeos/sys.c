@@ -82,70 +82,72 @@ int sys_getpid()
 
 int sys_fork() 
 {
-  struct task_struct *parent = current(); //PCB del pare
-  page_table_entry *system_pt = get_PT(parent); //punter a la taula de pagines de sistema del pare
-  int pcb_frame = alloc_frame(); //frame per al pcb del fill
-  if (pcb_frame == -1) return -EAGAIN; //no hi ha
+  struct task_struct *parent_pcb = current(); //PCB del pare
+  page_table_entry *SPTAddress = get_PT(parent_pcb); //punter a la taula de pagines de sistema del pare
+  int PCBFill = alloc_frame(); //frame per al pcb del fill
+  if (PCBFill == -1) return -EAGAIN; //no hi ha
 
-  set_ss_pag(system_pt, pcb_frame, pcb_frame, 0); //nova entrada a la TP del sistema
+  set_ss_pag(SPTAddress, PCBFill, PCBFill, 0); //nova entrada a la TP del sistema
 
-  union task_union *child = (union task_union *)((unsigned int)pcb_frame << 12);
-  copy_data(parent, child, PAGE_SIZE); //fill hereda el context del pare
-  struct task_struct *child_pcb = &child->task;
+  union task_union *child_union = (union task_union *)((unsigned int)PCBFill << 12);
+  copy_data(parent_pcb, child_union, PAGE_SIZE); //fill hereda el context del pare
+  struct task_struct *child_pcb = &child_union->task;
 
-  int dir_frame = alloc_frame(); //frame per al directori de pagines del fill
-  if (dir_frame == -1) return -EAGAIN; //no hi ha
-  set_ss_pag(system_pt, dir_frame, dir_frame, 0); //nova entrada a la TP del sistema
+  int DirFill = alloc_frame(); //frame per al directori de pagines del fill
+  if (DirFill == -1) return -EAGAIN; //no hi ha
+  set_ss_pag(SPTAddress, DirFill, DirFill, 0); //nova entrada a la TP del sistema
 
-  int user_pt_frame = alloc_frame(); //frame per a la taula de pagines d'usuari del fill
-  if (user_pt_frame == -1) return -EAGAIN; //no hi
-  set_ss_pag(system_pt, user_pt_frame, user_pt_frame, 0); //nova entrada a la TP del sistema
+  int UserPTFill = alloc_frame(); //frame per a la taula de pagines d'usuari del fill
+  if (UserPTFill == -1) return -EAGAIN; //no hi
+  set_ss_pag(SPTAddress, UserPTFill, UserPTFill, 0); //nova entrada a la TP del sistema
 
-  page_table_entry *child_dir = (page_table_entry *)((unsigned int)dir_frame << 12);
-  page_table_entry *child_user_pt = (page_table_entry *)((unsigned int)user_pt_frame << 12);
-  clear_page_table(child_dir);
-  clear_page_table(child_user_pt);
+  page_table_entry *DirFillAddress = (page_table_entry *)((unsigned int)DirFill << 12);
+  page_table_entry *UPTFillAddress = (page_table_entry *)((unsigned int)UserPTFill << 12);
+  clear_page_table(DirFillAddress);
+  clear_page_table(UPTFillAddress);
 
   //entrada 0: TP del sistema
-  child_dir[0] = get_DIR(parent)[0];
+  DirFillAddress[0] = get_DIR(parent_pcb)[0];
 
   // Entrada 1: taula d'usuari nova del fill
-  set_ss_pag(child_dir, 1, user_pt_frame, 1);
+  set_ss_pag(DirFillAddress, 1, UserPTFill, 1);
 
-  child_pcb->dir_pages_baseAddr = child_dir;
+  child_pcb->dir_pages_baseAddr = DirFillAddress;
 
-  page_table_entry *parent_user_pt = (page_table_entry *)((unsigned int)get_DIR(parent)[1].bits.pbase_addr << 12);
+  page_table_entry *UPTPareAddress = (page_table_entry *)((unsigned int)get_DIR(parent_pcb)[1].bits.pbase_addr << 12);
 
   // Copiem les entrades de codi del pare al fill, compartir codi
-  copy_data(&parent_user_pt[NUM_PAG_DATA], &child_user_pt[NUM_PAG_DATA], NUM_PAG_CODE * sizeof(page_table_entry));
+  copy_data(&UPTPareAddress[NUM_PAG_DATA], &UPTFillAddress[NUM_PAG_DATA], NUM_PAG_CODE * sizeof(page_table_entry));
 
   //copiem pila+dades d'usuari en nous frames de memoria
   const unsigned int tmp = NUM_PAG_DATA + NUM_PAG_CODE; //entrada lliure 8+20
-  for (int i = 0; i < NUM_PAG_DATA; i++) {
-    if (parent_user_pt[i].bits.present == 1) {
+  for (int i = 0; i < NUM_PAG_DATA; i++) 
+  {
+    if (UPTPareAddress[i].bits.present == 1) 
+    {
       int frame = alloc_frame(); //reservem un frame del fill
       if (frame == -1) return -EAGAIN; //no hi ha
-      set_ss_pag(child_user_pt, i, frame, 1); //nova entrada a la TP d'usuari del fill
+      set_ss_pag(UPTFillAddress, i, frame, 1); //nova entrada a la TP d'usuari del fill
 
       //La dirección temporal del padre apunta al frame del hijo
-      set_ss_pag(parent_user_pt, tmp, frame, 0);
+      set_ss_pag(UPTPareAddress, tmp, frame, 0);
 
       //copiem una pagina de dades del pare al fill
       copy_data((void *)(L_USER_START + i * PAGE_SIZE), (void *)(L_USER_START + tmp * PAGE_SIZE), PAGE_SIZE);
 
-      del_ss_pag(parent_user_pt, tmp); //eliminem entrada temporal del pare
-      set_cr3(get_DIR(parent)); //buidem TLB
+      del_ss_pag(UPTPareAddress, tmp); //eliminem entrada temporal del pare
+      set_cr3(get_DIR(parent_pcb)); //buidem TLB
       //reultilitzem la mateixa entrada temporal per a les 20 pagines.
     }
   }
 
   // Valor que rebra el fill com a resultat del fork. EAX=0; 
-  child->stack[KERNEL_STACK_SIZE - 10] = 0;
+  child_union->stack[KERNEL_STACK_SIZE - 10] = 0;
 
   // EBP inicial fals(consumit pel pop %ebp)
-  child->stack[KERNEL_STACK_SIZE - 18] = 0;
+  child_union->stack[KERNEL_STACK_SIZE - 18] = 0;
   //direccio de ret_from_fork
-  child->stack[KERNEL_STACK_SIZE - 17] = (unsigned long)ret_from_fork;
+  child_union->stack[KERNEL_STACK_SIZE - 17] = (unsigned long)ret_from_fork;
 
   child_pcb->kernel_esp = (unsigned int)&child->stack[KERNEL_STACK_SIZE - 18];
 
