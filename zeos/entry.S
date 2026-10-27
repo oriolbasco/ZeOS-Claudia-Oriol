@@ -85,6 +85,10 @@ ENTRY(clock_handler)
 	
 	RESTORE_ALL
 	iret
+
+ENTRY(ret_from_fork)
+    RESTORE_ALL
+    iret
 	
 ENTRY(my_page_fault_handler)
 	SAVE_ALL
@@ -97,26 +101,6 @@ ENTRY(my_page_fault_handler)
 	RESTORE_ALL
 	
 	addl $4, %esp // hem de treure el error code de la pila
-	iret
-
-ENTRY(system_call_handler)
-	SAVE_ALL
-
-	cmpl $0, %eax // mirar si el index de la sys call es negatiu
-	jl	err
-	cmpl $MAX_SYSCALL, %eax // mirar si el index de la sys call es mes gran que el maxim
-	jg	err
-
-	pushl %ebx
-	call *sys_call_table(, %eax, 4) // entrem a la syscall pel seu index
-	addl $4, %esp
-	jmp fin
-
-err: 
-	movl $-ENOSYS, %eax
-fin:
-	movl %eax, 0x18(%esp) // guardem directament a la pila el valor de eax pel return ja que sino amb el restore all s esborraria
-	RESTORE_ALL
 	iret
 
 ENTRY(task_switch)
@@ -152,3 +136,20 @@ ENTRY(switch_stack)
 
 	popl	%ebp
 	ret
+	
+
+//el handler de todas las system calls
+ENTRY(system_call_handler)
+	SAVE_ALL
+	cmpl $0, %EAX
+	jl err
+	cmpl $MAX_SYSCALL, %EAX
+	jg err
+	call *sys_call_table(, %EAX, 0x04)
+	jmp fin
+err:
+	//movl $-ENOSYS, %EAX
+fin:
+	movl %EAX, 0x18(%esp)
+	RESTORE_ALL
+	iret

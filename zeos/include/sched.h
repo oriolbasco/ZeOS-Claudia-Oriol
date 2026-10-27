@@ -47,6 +47,8 @@ void task_switch(union task_union *new);
 
 void switch_stack(unsigned int *save_kernel_esp, unsigned int new_kernel_esp);
 
+int assign_PID(void);
+
 struct task_struct * current();
 
 page_table_entry * get_PT (struct task_struct *t);

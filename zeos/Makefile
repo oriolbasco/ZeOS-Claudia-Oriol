@@ -81,6 +81,8 @@ wrappers.o: wrappers.s
 wrappers.s: wrappers.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
+wrappers.o: wrappers.s
+	$(AS) -o $@ $<
 
 user.o:user.c $(INCLUDEDIR)/libc.h
 
