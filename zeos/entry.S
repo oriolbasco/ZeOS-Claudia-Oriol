@@ -107,7 +107,7 @@ ENTRY(task_switch)
 	pushl	%ebp
 	movl	%esp, %ebp
 
-	pushl	%esi // guardem ESI,EDI i EBX
+	pushl	%esi // guardem ESI, EDI i EBX
 	pushl	%edi
 	pushl	%ebx
 
@@ -148,7 +148,7 @@ ENTRY(system_call_handler)
 	call *sys_call_table(, %EAX, 0x04)
 	jmp fin
 err:
-	//movl $-ENOSYS, %EAX
+	movl $-ENOSYS, %EAX
 fin:
 	movl %EAX, 0x18(%esp)
 	RESTORE_ALL

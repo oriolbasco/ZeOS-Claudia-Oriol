@@ -80,7 +80,8 @@ int sys_getpid()
   return current()->PID;
 }
 
-int sys_fork() {
+int sys_fork() 
+{
   struct task_struct *parent = current(); //PCB del pare
   page_table_entry *system_pt = get_PT(parent); //punter a la taula de pagines de sistema del pare
   int pcb_frame = alloc_frame(); //frame per al pcb del fill

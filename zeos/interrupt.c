@@ -200,9 +200,6 @@ void setIdt()
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   
   setTrapHandler(0x93, system_call_handler, 3);
-  
-
-  setTrapHandler(0x93, system_call_handler, 3);
 
   set_idt_reg(&idtR);
 }

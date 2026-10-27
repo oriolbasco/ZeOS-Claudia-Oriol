@@ -30,7 +30,6 @@ union task_union {
   unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, per procés */
 };
 
-
 #define KERNEL_ESP(t)       	(DWord) &(t)->stack[KERNEL_STACK_SIZE]
 
 extern char initial_stack[KERNEL_STACK_SIZE];

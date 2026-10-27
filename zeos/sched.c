@@ -101,15 +101,8 @@ void inner_task_switch(union task_union* new)
 {
 	page_table_entry * newDir = get_DIR(&(new->task));
 
-	//apunta al final del stac del nou proces
-	tss.esp0 = (unsigned long) &(new->stack[KERNEL_STACK_SIZE]);
-	//cambia el page directoy al nuevo
-	set_cr3(newDir);
-
-	/**current()->kernel_esp0 = %ebp
-	 * %esp = new->task.kernel_esp0 //canvi de stack al nou proces (per on anava)
-
-	set_cr3(newDir); // utilitzem el dir del nou proces
+	tss.esp0 = (unsigned long) &(new->stack[KERNEL_STACK_SIZE]); //apunta al final del stac del nou proces
+	set_cr3(newDir); // canvi al nou directori
 
 	/**current()->kernel_esp = %ebp
 	 * %esp = new->task.kernel_esp
