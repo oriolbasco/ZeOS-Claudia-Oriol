@@ -105,10 +105,10 @@ int sys_fork() {
   clear_page_table(child_dir);
   clear_page_table(child_user_pt);
 
-  /* Entrada 0: misma tabla de sistema que el padre. no seria get_PT ?? porque no se puede? */ 
+  //entrada 0: TP del sistema
   child_dir[0] = get_DIR(parent)[0];
 
-  /* Entrada 1: tabla de usuario nueva. */
+  // Entrada 1: taula d'usuari nova del fill
   set_ss_pag(child_dir, 1, user_pt_frame, 1);
 
   child_pcb->dir_pages_baseAddr = child_dir;
@@ -126,7 +126,7 @@ int sys_fork() {
       if (frame == -1) return -EAGAIN; //no hi ha
       set_ss_pag(child_user_pt, i, frame, 1); //nova entrada a la TP d'usuari del fill
 
-      /* La dirección temporal del padre apunta al frame del hijo. */
+      //La dirección temporal del padre apunta al frame del hijo
       set_ss_pag(parent_user_pt, tmp, frame, 0);
 
       //copiem una pagina de dades del pare al fill
@@ -138,11 +138,12 @@ int sys_fork() {
     }
   }
 
-  /* Valor que recibirá el hijo como resultado de fork(). */
+  // Valor que rebra el fill com a resultat del fork. EAX=0; 
   child->stack[KERNEL_STACK_SIZE - 10] = 0;
 
-  /* Dos posiciones que consumirá switch_stack(). */
+  // EBP inicial fals(consumit pel pop %ebp)
   child->stack[KERNEL_STACK_SIZE - 18] = 0;
+  //direccio de ret_from_fork
   child->stack[KERNEL_STACK_SIZE - 17] = (unsigned long)ret_from_fork;
 
   child_pcb->kernel_esp = (unsigned int)&child->stack[KERNEL_STACK_SIZE - 18];

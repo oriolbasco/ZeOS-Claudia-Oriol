@@ -7,6 +7,10 @@
 #include <io.h>
 #include <hardware.h>
 
+struct list_head ready_queue;
+struct task_struct *init_task;
+struct task_struct *idle_task;
+
 char initial_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned(4096))); // Space for the initial system stack
 static int next_pid = 2;
 
