@@ -10,6 +10,7 @@
 struct list_head ready_queue;
 struct task_struct *init_task;
 struct task_struct *idle_task;
+int ticks_restants;
 
 char initial_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned(4096))); // Space for the initial system stack
 static int next_pid = 2;
@@ -54,6 +55,8 @@ void init_idle (void)
 	idle_union->stack[KERNEL_STACK_SIZE - 1] = (unsigned long) cpu_idle; // guardem l'adreça de cpu_idle per fer el task switch
     idle_union->stack[KERNEL_STACK_SIZE - 2] = 0; // guardem valor inicial registre EBP (0)
     idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem l'adreça de l'EBP fals que hem posat a la pila
+    idle_pcb->quantum = DEFAULT_QUANTUM;
+    idle_pcb->state = ST_READY;
 
     idle_task = idle_pcb;
 }
@@ -89,6 +92,9 @@ void init_task1(void)
 
     task1->PID = 1;
     task1->dir_pages_baseAddr = DirAddress;
+    task1->quantum = DEFAULT_QUANTUM;
+    task1->state = ST_RUN;
+    ticks_restants = task1->quantum;
 
     set_cr3(DirAddress); // el dir d'init passa a ser l'espai d'adreces actiu
 
@@ -112,7 +118,7 @@ void inner_task_switch(union task_union* new)
 
 void init_sched()
 {
-	
+	INIT_LIST_HEAD(&ready_queue);
 }
 
 int assign_PID(void)
@@ -124,4 +130,19 @@ int assign_PID(void)
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
 	return list_entry(l, struct task_struct, list); // restem a 'l' l'offset del camp list dins del task_struct
+}
+
+void update_process_state_rr(struct task_struct *t, struct list_head *dst_queue)
+{
+    if (t->state != ST_RUN) list_del(&t->list);
+    
+    if (dst_queue != NULL) 
+    {
+        list_add_tail(&t->list, dst_queue);
+        t->state = ST_READY;
+    } 
+    else
+    {
+        t->state = ST_RUN;
+    }
 }

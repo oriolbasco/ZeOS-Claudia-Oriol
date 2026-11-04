@@ -10,10 +10,12 @@
 #include <mm_address.h>
 
 #define KERNEL_STACK_SIZE	1024
+#define DEFAULT_QUANTUM 10
 
 extern struct list_head ready_queue;
 extern struct task_struct *init_task;
 extern struct task_struct *idle_task;
+extern int ticks_restants;
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
@@ -23,6 +25,7 @@ struct task_struct {
   unsigned int quantum; /* Temps que li queda a un proces a dins de la cpu */
   struct list_head list;	/* node del proces a la ready queue */
   unsigned int kernel_esp;
+  enum state_t state;
 };
 
 union task_union {
@@ -57,5 +60,11 @@ page_table_entry * get_DIR (struct task_struct *t);
 void inner_task_switch(union task_union *new);
 
 struct task_struct *list_head_to_task_struct(struct list_head *l);
+
+int get_quantum(struct task_struct *t);
+
+void set_quantum(struct task_struct *t, int new_quantum);
+
+void update_process_state_rr(struct task_struct *t, struct list_head *dst_queue);
 
 #endif  /* __SCHED_H__ */
