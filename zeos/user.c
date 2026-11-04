@@ -41,8 +41,30 @@ main(void)
   // joc de prova page fault
   //char* p = 0;
   //*p = 'x';
-*/  
-  fork();
+*/
+  // joc de prova getpid + fork
+  if (write(1, "\n[init] getpid = ", strlen("\n[init] getpid = ")) < 0) perror();
+  itoa(getpid(), buff); // ha de ser 1
+  if (write(1, buff, strlen(buff)) < 0) perror();
+
+  int ret = fork();
+  if (ret < 0) perror();
+  else if (ret == 0)
+  {
+    if (write(1, "\n[fill] fork ha retornat 0, getpid = ", strlen("\n[fill] fork ha retornat 0, getpid = ")) < 0) perror();
+    itoa(getpid(), buff); // ha de ser 2
+    if (write(1, buff, strlen(buff)) < 0) perror();
+  }
+  else
+  {
+    if (write(1, "\n[pare] fork ha retornat ", strlen("\n[pare] fork ha retornat ")) < 0) perror();
+    itoa(ret, buff); // PID del fill, ha de ser 2
+    if (write(1, buff, strlen(buff)) < 0) perror();
+
+    if (write(1, ", getpid = ", strlen(", getpid = ")) < 0) perror();
+    itoa(getpid(), buff); // ha de ser 1
+    if (write(1, buff, strlen(buff)) < 0) perror();
+  }
 
   while(1) { }
 }
