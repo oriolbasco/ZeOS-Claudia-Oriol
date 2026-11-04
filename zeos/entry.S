@@ -87,6 +87,7 @@ ENTRY(clock_handler)
 	iret
 
 ENTRY(ret_from_fork)
+	addl $4, %esp // esborrem el parametre (ebx) que el handler havia empilat abans de cridar sys_fork
     RESTORE_ALL
     iret
 	
@@ -144,8 +145,10 @@ ENTRY(system_call_handler)
 	cmpl $0, %EAX
 	jl err
 	cmpl $MAX_SYSCALL, %EAX
-	jg err
+	jge err
+	pushl %ebx // parametre del sys_*: adreça de la pila d'usuari on hi ha els parametres
 	call *sys_call_table(, %EAX, 0x04)
+	addl $4, %esp // esborrem el parametre
 	jmp fin
 err:
 	movl $-ENOSYS, %EAX
