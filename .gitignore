@@ -39,3 +39,6 @@ bochsout.txt
 
 # Dependències generades automàticament
 *.d
+
+# Enunciat del projecte (no es puja)
+ZeosSOA.pdf
