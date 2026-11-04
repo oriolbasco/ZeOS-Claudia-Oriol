@@ -119,3 +119,9 @@ int assign_PID(void)
 {
     return next_pid++;
 }
+
+/* retorna el task_struct que conte el node 'l' */
+struct task_struct *list_head_to_task_struct(struct list_head *l)
+{
+	return list_entry(l, struct task_struct, list); // restem a 'l' l'offset del camp list dins del task_struct
+}
