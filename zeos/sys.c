@@ -14,7 +14,7 @@
 #define chunk 256
 
 extern int zeos_ticks;
-extern void ret_from_fork(void);
+//extern void ret_from_fork(void);
 
 int check_fd(int fd, int permissions)
 {
@@ -186,7 +186,8 @@ void sys_exit() {
   free_frame(dir);
   free_frame(child_user_pt);
   */
-  sched_next_rr(); //triem un nou proces a executar
+  //com ho trec de la CPU?
+  //sched_next_rr(); //triem un nou proces a executar
 }
 
 int sys_ni_syscall()

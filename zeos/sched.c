@@ -106,13 +106,14 @@ void inner_task_switch(union task_union* new)
 	//cambia el page directoy al nuevo
 	set_cr3(newDir);
 
-	/*current()->kernel_esp0 = %ebp
-	 * %esp = new->task.kernel_esp0 //canvi de stack al nou proces (per on anava)
+	/*
+    current()->kernel_esp0 = %ebp
+	 %esp = new->task.kernel_esp0 //canvi de stack al nou proces (per on anava)
 
 	set_cr3(newDir); // utilitzem el dir del nou proces
 
-	/*current()->kernel_esp = %ebp
-	 * %esp = new->task.kernel_esp
+	current()->kernel_esp = %ebp
+	 %esp = new->task.kernel_esp
 	 */
 	switch_stack(&current()->kernel_esp, new->task.kernel_esp);
 }
