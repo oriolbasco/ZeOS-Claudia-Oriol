@@ -190,8 +190,7 @@ void sys_exit() {
   free_frame(dir);
   free_frame(child_user_pt);
   */
-  //com ho trec de la CPU?
-  //sched_next_rr(); //triem un nou proces a executar
+  sched_next_rr(); //triem un nou proces a executar
 }
 
 int sys_ni_syscall()
