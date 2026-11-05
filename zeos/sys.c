@@ -150,9 +150,43 @@ int sys_fork() {
 
   child_pcb->PID = assign_PID(); //assignem un nou PID al fill
 
-  INIT_LIST_HEAD(&(child_pcb->list)); //inicialitzem la llista del fill
+  INIT_LIST_HEAD(&(child_pcb->list)); //inicialitzem node del fill
   list_add_tail(&(child_pcb->list), &ready_queue); //afegim
+
+  // afegim el fill a la llista de fills vius del pare
+  child_pcb->pare = parent;
+  list_add_tail(&(child_pcb->list), &(parent->alive_children)); //parent es el current.
+
   return child_pcb->PID; //retornem el PID del fill
+}
+
+
+//liberar datos y pila de usuario, registrar el zombi y cambiar de proceso.
+void sys_exit() {
+  struct task_struct *parent = current()->pare;
+  
+  list_del(&(current()->list)); //eliminem de la llista de ready i vius
+  list_add_tail(&(current()->list), &(parent->zombie_children)); //afegim node a llista zombies del pare
+  
+  //ara alliberem frames de dades i pila d'usuari del fill
+  page_table_entry *dir = get_DIR(current());
+  page_table_entry *child_user_pt = (page_table_entry *)((unsigned int)dir[1].bits.pbase_addr << 12);
+  for (int i = 0; i < NUM_PAG_DATA; i++) {
+    if (child_user_pt[i].bits.present == 1) {
+      int frame = child_user_pt[i].bits.pbase_addr;
+      free_frame(frame);
+      del_ss_pag(child_user_pt, i); //eliminem entrada de la TP d'usuari del fill
+    }
+  }
+  set_cr3(dir);
+  //hauria d'eliminar la TP del proces? i la TP del dir? aixo ho fa el pare en wait o ho faig aqui?
+  //añado a cola de zombies? o no?
+  /*
+  free_frame(current());
+  free_frame(dir);
+  free_frame(child_user_pt);
+  */
+  sched_next_rr(); //triem un nou proces a executar
 }
 
 int sys_ni_syscall()

@@ -23,6 +23,9 @@ struct task_struct {
   unsigned int quantum; /* Temps que li queda a un proces a dins de la cpu */
   struct list_head list;	/* node del proces a la ready queue */
   unsigned int kernel_esp;
+  struct task_struct *pare; //todo proc tiene padre
+  struct list_head alive_children; //todo proc tiene hijos vivos
+  struct list_head zombie_children; //todo proc tiene hijos muertos
 };
 
 union task_union {
