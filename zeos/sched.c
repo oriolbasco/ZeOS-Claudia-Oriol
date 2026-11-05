@@ -152,6 +152,7 @@ void update_sched_data_rr(void)
     if (ticks_restants > 0) --ticks_restants; // no baixa mai de 0
 }
 
+/*decideix si fa falta cambiar de proces*/
 int needs_sched_rr(void)
 {
     // quantum acabat o som idle, i hi ha algu esperant a la ready_queue
@@ -159,6 +160,7 @@ int needs_sched_rr(void)
     else return 0;
 }
 
+/*selecciona el seguent proces i cambia a ell*/
 void sched_next_rr(void)
 {
     struct task_struct *new;

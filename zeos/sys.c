@@ -98,7 +98,7 @@ int sys_fork()
   set_ss_pag(SPTAddress, DirFill, DirFill, 0); //nova entrada a la TP del sistema
 
   int UserPTFill = alloc_frame(); //frame per a la taula de pagines d'usuari del fill
-  if (UserPTFill == -1) return -EAGAIN; //no hi
+  if (UserPTFill == -1) return -EAGAIN; //no hi ha
   set_ss_pag(SPTAddress, UserPTFill, UserPTFill, 0); //nova entrada a la TP del sistema
 
   page_table_entry *DirFillAddress = (page_table_entry *)((unsigned int)DirFill << 12);
