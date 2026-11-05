@@ -157,6 +157,30 @@ int sys_fork()
   return child_pcb->PID; //retornem el PID del fill
 }
 
+void sys_exit()
+{
+  struct task_struct *pcb = current();
+  page_table_entry *dir = get_DIR(pcb);
+  page_table_entry *UPTAddress = (page_table_entry *)((unsigned int)dir[1].bits.pbase_addr << 12); //TP d'usuari, entrada 1 del dir
+
+  //alliberem dades+pila d'usuari, el codi es compartit i no s'allibera
+  for (int i = 0; i < NUM_PAG_DATA; i++)
+  {
+    if (UPTAddress[i].bits.present == 1)
+    {
+      free_frame(UPTAddress[i].bits.pbase_addr);
+      del_ss_pag(UPTAddress, i);
+    }
+  }
+
+  //free_frame nomes els marca lliures, podem seguir fent servir la pila i el dir fins al task_switch
+  free_frame((unsigned int)UPTAddress >> 12);
+  free_frame((unsigned int)dir >> 12);
+  free_frame((unsigned int)pcb >> 12);
+
+  sched_next_rr(); //no tornem mai aqui
+}
+
 int sys_ni_syscall()
 {
 	return -ENOSYS;

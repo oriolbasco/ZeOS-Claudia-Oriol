@@ -149,11 +149,12 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dst_queue)
 
 void update_sched_data_rr(void) 
 {
-    if (ticks_restants > 0) --ticks_restants;
+    if (ticks_restants > 0) --ticks_restants; // no baixa mai de 0
 }
 
 int needs_sched_rr(void)
 {
+    // quantum acabat o som idle, i hi ha algu esperant a la ready_queue
     if ((ticks_restants == 0 || (current()->PID == 0)) && !list_empty(&ready_queue)) return 1;
     else return 0;
 }
@@ -163,15 +164,15 @@ void sched_next_rr(void)
     struct task_struct *new;
     if (list_empty(&ready_queue))
     {
-        new = idle_task;
-    } 
+        new = idle_task; // idle no esta a cap cua, no fem update_process_state_rr
+    }
     else
     {
         new = list_head_to_task_struct(list_first(&ready_queue));
         update_process_state_rr(new, NULL);
     }
     
-    ticks_restants = get_quantum(new);
+    ticks_restants = get_quantum(new); // abans del task_switch, el fill i idle la primera vegada no tornen aqui
     task_switch((union task_union *)new);
 }
 
@@ -181,7 +182,7 @@ void schedule(void)
 
     if (needs_sched_rr()) 
     {
-        if (current()->PID != 0) update_process_state_rr(current(), &ready_queue);
+        if (current()->PID != 0) update_process_state_rr(current(), &ready_queue); // idle no va mai a la ready_queue
         sched_next_rr();
     }
 }
