@@ -56,13 +56,3 @@ ENTRY(fork)
 
 	popl %ebp
 	ret
-
-ENTRY(exit)
-	pushl %ebp
-	movl %esp, %ebp
-
-	movl $1, %eax // pos a la sys_call_table 
-	int	$0x93 // activem la trap
-
-	popl %ebp
-	ret
