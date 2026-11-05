@@ -4,13 +4,10 @@
 *.o
 *.obj
 *.s.o
-<<<<<<< HEAD
 *.s
-=======
 *.a
 !zeos/libzeos.a
 
->>>>>>> claudia
 # Fitxers generats per ZeOS
 zeos/system
 zeos/user
@@ -42,3 +39,6 @@ bochsout.txt
 
 # Dependències generades automàticament
 *.d
+
+# Enunciat del projecte (no es puja)
+ZeosSOA.pdf
