@@ -66,5 +66,14 @@ main(void)
     if (write(1, buff, strlen(buff)) < 0) perror();
   }
 
-  while(1) { }
+  // joc de prova planificador round robin: pare i fill escriuen el seu PID alternant-se
+  if (write(1, "\n", strlen("\n")) < 0) perror();
+  while(1)
+  {
+    for (int i = 0; i < 500000; ++i); // espera
+
+    itoa(getpid(), buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
+    if (write(1, " ", strlen(" ")) < 0) perror();
+  }
 }

@@ -146,3 +146,52 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dst_queue)
         t->state = ST_RUN;
     }
 }
+
+void update_sched_data_rr(void) 
+{
+    if (ticks_restants > 0) --ticks_restants;
+}
+
+int needs_sched_rr(void)
+{
+    if ((ticks_restants == 0 || (current()->PID == 0)) && !list_empty(&ready_queue)) return 1;
+    else return 0;
+}
+
+void sched_next_rr(void)
+{
+    struct task_struct *new;
+    if (list_empty(&ready_queue))
+    {
+        new = idle_task;
+    } 
+    else
+    {
+        new = list_head_to_task_struct(list_first(&ready_queue));
+        update_process_state_rr(new, NULL);
+    }
+    
+    ticks_restants = get_quantum(new);
+    task_switch((union task_union *)new);
+}
+
+void schedule(void)
+{
+    update_sched_data_rr();
+
+    if (needs_sched_rr()) 
+    {
+        if (current()->PID != 0) update_process_state_rr(current(), &ready_queue);
+        sched_next_rr();
+    }
+}
+
+int get_quantum(struct task_struct *t)
+{
+    return t->quantum;
+}
+
+void set_quantum(struct task_struct *t, int new_quantum)
+{
+    t->quantum = new_quantum;
+}
