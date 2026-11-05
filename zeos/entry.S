@@ -83,6 +83,7 @@ ENTRY(clock_handler)
 
 	call clock_routine
 	
+ret_from_fork:	
 	RESTORE_ALL
 	iret
 
