@@ -45,6 +45,8 @@ main(void)
   write(1, "\n", 1);
 
 */
+
+/*
   // ================================================joc de prova getpid + fork====================================================
   if (write(1, "\n[init] getpid = ", strlen("\n[init] getpid = ")) < 0) perror();
   itoa(getpid(), buff); // ha de ser 1
@@ -142,7 +144,7 @@ main(void)
     itoa(pid, buff);
     if (write(1, buff, strlen(buff)) < 0) perror();
   }
-
+*/
   //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
     int pid = getpid();
