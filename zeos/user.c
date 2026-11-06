@@ -4,6 +4,7 @@ char buff[24];
 
 int pid;
 
+int globalVar = 20;
 int __attribute__ ((__section__(".text.main")))
 main(void)
 {
@@ -42,6 +43,8 @@ main(void)
   //char* p = 0;
   // *p = 'x';
 */
+
+/*
   // joc de prova getpid + fork
   if (write(1, "\n[init] getpid = ", strlen("\n[init] getpid = ")) < 0) perror();
   itoa(getpid(), buff); // ha de ser 1
@@ -103,5 +106,36 @@ main(void)
 
   // joc de prova idle: no queda cap proces
   if (write(1, "\n[pare] exit, a partir d'ara idle\n", strlen("\n[pare] exit, a partir d'ara idle\n")) < 0) perror();
+*/
+  int localVar = 10;
+
+  int pid = fork();
+  if(pid < 0) perror();
+
+  //joc de prova variable global i local:
+  if(pid == 0) {
+    globalVar = 200;
+    localVar = 100;
+
+    if (write(1, "\n[fill] variable global i local: ", strlen("\n[fill] variable global i local: ")) < 0) perror();
+    itoa(n, buff);
+    if (write(1, localVar, strlen(localVar)) < 0) perror();
+
+    if (write(1, "\n[fill] variable global i local: ", strlen("\n[fill] variable global i local: ")) < 0) perror();
+    itoa(n, buff);
+    if (write(1, globalVar, strlen(globalVar)) < 0) perror();
+  }
+  
+  
+  else {
+    if (write(1, "\n[pare] variable global i local: ", strlen("\n[pare] variable global i local: ")) < 0) perror();
+    itoa(n, buff);
+    if (write(1, localVar, strlen(localVar)) < 0) perror();
+
+    if (write(1, "\n[pare] variable global i local: ", strlen("\n[pare] variable global i local: ")) < 0) perror();
+    itoa(n, buff);
+    if (write(1, globalVar, strlen(globalVar)) < 0) perror();
+  }
+
   exit();
 }
