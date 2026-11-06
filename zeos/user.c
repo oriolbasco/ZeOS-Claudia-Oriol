@@ -107,6 +107,9 @@ main(void)
   // joc de prova idle: no queda cap proces
   if (write(1, "\n[pare] exit, a partir d'ara idle\n", strlen("\n[pare] exit, a partir d'ara idle\n")) < 0) perror();
 */
+
+/*
+  //joc de proba modificar variable local i global
   int localVar = 10;
 
   int pid = fork();
@@ -114,27 +117,46 @@ main(void)
 
   //joc de prova variable global i local:
   if(pid == 0) {
+
+    //abans:
+    if (write(1, "\n[fill] variable global i local: ", strlen("\n[fill] variable global i local: ")) < 0) perror();
+    itoa(localVar, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
+
+    itoa(globalVar, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
+
     globalVar = 200;
     localVar = 100;
 
-    if (write(1, "\n[fill] variable global i local: ", strlen("\n[fill] variable global i local: ")) < 0) perror();
-    itoa(n, buff);
-    if (write(1, localVar, strlen(localVar)) < 0) perror();
+    //despres:
+
 
     if (write(1, "\n[fill] variable global i local: ", strlen("\n[fill] variable global i local: ")) < 0) perror();
-    itoa(n, buff);
-    if (write(1, globalVar, strlen(globalVar)) < 0) perror();
+    itoa(localVar, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
+
+    itoa(globalVar, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
   }
   
   
   else {
     if (write(1, "\n[pare] variable global i local: ", strlen("\n[pare] variable global i local: ")) < 0) perror();
-    itoa(n, buff);
-    if (write(1, localVar, strlen(localVar)) < 0) perror();
+    itoa(localVar, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
 
-    if (write(1, "\n[pare] variable global i local: ", strlen("\n[pare] variable global i local: ")) < 0) perror();
-    itoa(n, buff);
-    if (write(1, globalVar, strlen(globalVar)) < 0) perror();
+    itoa(globalVar, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
+  }
+*/
+  int pid = fork();
+  while(pid > 0) {
+    pid = fork();
+
+    if (write(1, "\npid fill:\n", strlen("\npid fill:\n")) < 0) perror();
+    itoa(pid, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
   }
 
   exit();
