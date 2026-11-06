@@ -82,6 +82,9 @@ ENTRY(clock_handler)
 	EOI
 
 	call clock_routine
+
+	RESTORE_ALL
+	iret
 	
 ENTRY(ret_from_fork)
     addl $4, %esp     //descarta argument
@@ -140,7 +143,7 @@ ENTRY(switch_stack)
 ENTRY(system_call_handler)
 	SAVE_ALL
 	cmpl $0, %EAX
-	jl err
+	jge err
 	cmpl $MAX_SYSCALL, %EAX
 	jg err
 
@@ -149,7 +152,7 @@ ENTRY(system_call_handler)
 	addl $4, %esp
 	jmp fin
 err:
-	//movl $-ENOSYS, %EAX
+	movl $-ENOSYS, %EAX
 fin:
 	movl %EAX, 0x18(%esp)
 	RESTORE_ALL
