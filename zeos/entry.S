@@ -143,6 +143,8 @@ ENTRY(system_call_handler)
 	jl err
 	cmpl $MAX_SYSCALL, %EAX
 	jg err
+
+	push %ebx //param que necesiten algunes syscalls (com write)
 	call *sys_call_table(, %EAX, 0x04)
 	jmp fin
 err:
