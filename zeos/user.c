@@ -8,21 +8,26 @@ int globalVar = 20;
 int __attribute__ ((__section__(".text.main")))
 main(void)
 {
+/*
     /* Next line, tries to move value 0 to CR3 register. This register is a privileged one, and so it will raise an exception */
      /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
 
-  //char* p = 0;
-  //*p = 'x';
-  //int ret = write(1, buff, sizeof(buff));
+  //========================================prova accedir a adreça 0=====================================================
   /*
-  char buffTestSize[500]; // prova buffer mes que 256
+  char* p = 0;
+  *p = 'x';
+  int ret = write(1, buff, sizeof(buff));
+  */
+  //==================================================prova WRITE buffer mes que 256===================================================
+  /*
+  char buffTestSize[500];
   for (int i = 0; i < 500; ++i) buffTestSize[i] = 'a';
-  //if (write(1,buffTestSize,500) < 0) perror();
+  if (write(1,buffTestSize,500) < 0) perror();
 
   if (write(1, 0, 10) < 0) perror(); // prova punter buffer incorrecte
   if (write(1, "Test", -5) < 0) perror(); // prova size dolent
 
-  //proba de gettime
+  //==========================================proba de gettime=====================================================================
   if (write(1, "\nProva gettime: \n", sizeof("\nProva gettime: \n")) < 0) perror();
   
   int t1 = gettime();
@@ -39,13 +44,8 @@ main(void)
   write(1, buff, strlen(buff));
   write(1, "\n", 1);
 
-  // joc de prova page fault
-  //char* p = 0;
-  // *p = 'x';
 */
-
-/*
-  // joc de prova getpid + fork
+  // ================================================joc de prova getpid + fork====================================================
   if (write(1, "\n[init] getpid = ", strlen("\n[init] getpid = ")) < 0) perror();
   itoa(getpid(), buff); // ha de ser 1
   if (write(1, buff, strlen(buff)) < 0) perror();
@@ -69,7 +69,7 @@ main(void)
     if (write(1, buff, strlen(buff)) < 0) perror();
   }
 
-  // joc de prova planificador + exit: el fill fa exit despres de 10 escriptures
+  // ==============================joc de prova planificador + exit: el fill fa exit despres de 10 escriptures====================================
   if (write(1, "\n", strlen("\n")) < 0) perror();
   for (int n = 0; n < 30; ++n)
   {
@@ -86,36 +86,18 @@ main(void)
     }
   }
 
-  // joc de prova 50 forks amb exit, si exit no allibera els frames el fork falla cap a la iteracio 40
-  if (write(1, "\n[pare] 50 forks amb exit: ", strlen("\n[pare] 50 forks amb exit: ")) < 0) perror();
-  for (int n = 0; n < 50; ++n)
-  {
-    pid = fork();
-    if (pid == 0) exit();
-
-    if (pid < 0)
-    {
-      if (write(1, "\n[pare] fork ha fallat a la iteracio ", strlen("\n[pare] fork ha fallat a la iteracio ")) < 0) perror();
-      itoa(n, buff);
-      if (write(1, buff, strlen(buff)) < 0) perror();
-    }
-    else if (write(1, ".", strlen(".")) < 0) perror();
-
-    for (int i = 0; i < 500000; ++i); // espera perque el fill s'executi i faci exit
-  }
-
-  // joc de prova idle: no queda cap proces
+  //=========================================joc de prova idle: no queda cap proces==================================================0
+  exit(); //proces pare fa exit
   if (write(1, "\n[pare] exit, a partir d'ara idle\n", strlen("\n[pare] exit, a partir d'ara idle\n")) < 0) perror();
-*/
 
-/*
-  //joc de proba modificar variable local i global
+
+
+  //======================================joc de proba modificar variable local i global(fill)==========================================
   int localVar = 10;
 
   int pid = fork();
   if(pid < 0) perror();
 
-  //joc de prova variable global i local:
   if(pid == 0) {
 
     //abans:
@@ -149,7 +131,9 @@ main(void)
     itoa(globalVar, buff);
     if (write(1, buff, strlen(buff)) < 0) perror();
   }
-*/
+
+
+//===========================================CREAR FILLS INFINITS=====================================================
   int pid = fork();
   while(pid > 0) {
     pid = fork();
@@ -159,5 +143,11 @@ main(void)
     if (write(1, buff, strlen(buff)) < 0) perror();
   }
 
-  exit();
+  //====================================================unic proces executantse(no volem idle)========================================
+  while(1) {
+    int pid = getpid();
+    if (write(1, "\npid actual:\n", strlen("\npid actual:\n")) < 0) perror();
+    itoa(pid, buff);
+    if (write(1, buff, strlen(buff)) < 0) perror();
+  }
 }
