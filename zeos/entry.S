@@ -146,6 +146,7 @@ ENTRY(system_call_handler)
 
 	push %ebx //param que necesiten algunes syscalls (com write)
 	call *sys_call_table(, %EAX, 0x04)
+	addl $4, %esp
 	jmp fin
 err:
 	//movl $-ENOSYS, %EAX
