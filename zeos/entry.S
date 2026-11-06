@@ -145,7 +145,7 @@ ENTRY(system_call_handler)
 	cmpl $0, %EAX
 	jl err
 	cmpl $MAX_SYSCALL, %EAX
-	jg err
+	jge err
 
 	push %ebx //param que necesiten algunes syscalls (com write)
 	call *sys_call_table(, %EAX, 0x04)

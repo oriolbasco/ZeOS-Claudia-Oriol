@@ -140,9 +140,14 @@ main(void)
   while(pid > 0) {
     pid = fork();
 
-    if (write(1, "\npid fill:\n", strlen("\npid fill:\n")) < 0) perror();
-    itoa(pid, buff);
-    if (write(1, buff, strlen(buff)) < 0) perror();
+/*
+  // joc de prova quants fills podem crear: els fills es queden vius i el pare fa fork fins que falla
+  int fills = 0;
+  pid = fork();
+  while (pid > 0)
+  {
+    ++fills;
+    pid = fork();
   }
 */
   //====================================================unic proces executantse(no volem idle)========================================
