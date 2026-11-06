@@ -143,7 +143,7 @@ ENTRY(switch_stack)
 ENTRY(system_call_handler)
 	SAVE_ALL
 	cmpl $0, %EAX
-	jge err
+	jl err
 	cmpl $MAX_SYSCALL, %EAX
 	jg err
 
