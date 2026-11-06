@@ -176,7 +176,7 @@ void sys_exit()
   //free_frame nomes els marca lliures, podem seguir fent servir la pila i el dir fins al task_switch
   free_frame((unsigned int)UPTAddress >> 12);
   free_frame((unsigned int)dir >> 12);
-  del_ss_pag(dir, UPTAddress);
+  del_ss_pag(dir, (unsigned int)UPTAddress >> 12);
 
   free_frame((unsigned int)pcb >> 12);
 
