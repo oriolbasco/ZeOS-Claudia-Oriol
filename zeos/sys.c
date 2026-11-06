@@ -147,7 +147,7 @@ int sys_fork()
   // -17: parametre (ebx) empilat pel handler, el treu ret_from_fork
   // EBP inicial fals(consumit pel pop %ebp)
   child_union->stack[KERNEL_STACK_SIZE - 19] = 0;
-  child_union->stack[KERNEL_STACK_SIZE - 18] = (unsigned long)ret_from_fork; //direccio de ret_from_fork
+  child_union->stack[KERNEL_STACK_SIZE - 18] = (unsigned long)ret_from_fork; //direccio de ret_from_fork, fill no torna al handler de syscall
   child_pcb->kernel_esp = (unsigned int)&child_union->stack[KERNEL_STACK_SIZE - 19];
   child_pcb->PID = assign_PID(); //assignem un nou PID al fill
   child_pcb->state = ST_READY;

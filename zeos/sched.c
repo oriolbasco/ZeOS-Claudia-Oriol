@@ -36,6 +36,7 @@ void cpu_idle(void)
 	}
 }
 
+/*proces idle*/
 void init_idle (void)
 {
 	int Dir = alloc_frame(); // reservem un frame per el nou dir
@@ -61,6 +62,7 @@ void init_idle (void)
     idle_task = idle_pcb;
 }
 
+/*primer proces quan fem boot*/
 void init_task1(void)
 {
     int Dir = alloc_frame(); // reservem un frame per el nou dir
@@ -113,7 +115,7 @@ void inner_task_switch(union task_union* new)
 	/**current()->kernel_esp = %ebp
 	 * %esp = new->task.kernel_esp
 	 */
-	switch_stack(&current()->kernel_esp, new->task.kernel_esp);
+	switch_stack(&current()->kernel_esp, new->task.kernel_esp); //cambio de pila (esp)
 }
 
 void init_sched()
@@ -174,18 +176,19 @@ void sched_next_rr(void)
         update_process_state_rr(new, NULL);
     }
     
+    //s'anira disminuint amb les interrupcions de rellotge
     ticks_restants = get_quantum(new); // abans del task_switch, el fill i idle la primera vegada no tornen aqui
     task_switch((union task_union *)new);
 }
 
 void schedule(void)
 {
-    update_sched_data_rr();
+    update_sched_data_rr(); //--quantum del current
 
     if (needs_sched_rr()) 
     {
         if (current()->PID != 0) update_process_state_rr(current(), &ready_queue); // idle no va mai a la ready_queue
-        sched_next_rr();
+        sched_next_rr(); //fem el task_switch
     }
 }
 

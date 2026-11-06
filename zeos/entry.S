@@ -83,13 +83,9 @@ ENTRY(clock_handler)
 
 	call clock_routine
 	
+ret_from_fork:	
 	RESTORE_ALL
 	iret
-
-ENTRY(ret_from_fork)
-	addl $4, %esp // esborrem el parametre (ebx) que el handler havia empilat abans de cridar sys_fork
-    RESTORE_ALL
-    iret
 	
 ENTRY(my_page_fault_handler)
 	SAVE_ALL
@@ -108,7 +104,7 @@ ENTRY(task_switch)
 	pushl	%ebp
 	movl	%esp, %ebp
 
-	pushl	%esi // guardem ESI, EDI i EBX
+	pushl	%esi // guardem ESI,EDI i EBX
 	pushl	%edi
 	pushl	%ebx
 
@@ -145,13 +141,11 @@ ENTRY(system_call_handler)
 	cmpl $0, %EAX
 	jl err
 	cmpl $MAX_SYSCALL, %EAX
-	jge err
-	pushl %ebx // parametre del sys_*: adreça de la pila d'usuari on hi ha els parametres
+	jg err
 	call *sys_call_table(, %EAX, 0x04)
-	addl $4, %esp // esborrem el parametre
 	jmp fin
 err:
-	movl $-ENOSYS, %EAX
+	//movl $-ENOSYS, %EAX
 fin:
 	movl %EAX, 0x18(%esp)
 	RESTORE_ALL
