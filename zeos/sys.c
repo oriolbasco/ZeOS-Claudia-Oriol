@@ -183,6 +183,10 @@ void sys_exit()
   sched_next_rr(); //no tornem mai aqui
 }
 
+int sys_read(char* b, int maxchars) {
+  
+}
+
 int sys_ni_syscall()
 {
 	return -ENOSYS;
