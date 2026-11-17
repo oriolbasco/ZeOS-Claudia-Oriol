@@ -1,4 +1,4 @@
-#include <circular_buffer.h>
+#include <buffer_circular.h>
 
 void cbuf_init(struct circular_buffer *buf)
 {

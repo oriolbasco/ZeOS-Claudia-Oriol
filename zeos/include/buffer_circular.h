@@ -3,6 +3,8 @@
 
 #define CBUF_CAPACITY 128
 
+extern struct circular_buffer keyboard_buffer;
+
 struct circular_buffer {
     char data[CBUF_CAPACITY];
     unsigned int head; //posicio de la proxima extracció
