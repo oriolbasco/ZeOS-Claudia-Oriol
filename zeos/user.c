@@ -151,23 +151,8 @@ main(void)
   }
 */
 
-//================================proba read=======================================================
-/*  
-char b[5];
-int n = read(b, 5);
-
-if (n < 0) perror();
-
-else {
-  write(1, "\nLeidos: ", strlen("\nLeidos: "));
-  itoa(n, buff);
-  write(1, buff, strlen(buff));
-
-  write(1, "\nContenido: [", strlen("\nContenido: ["));
-  write(1, b, n);
-  write(1, "]\n", 2);
-}
-  */
+//================================proba read un proceso=======================================================
+/*
 char b[5];
 char numero[24];
 
@@ -180,13 +165,55 @@ itoa(n, numero);
 write(1, numero, strlen(numero));
 write(1, "\n", 1);
 
-if (n < 0) {
-    perror();
-} else if (n <= sizeof(b)) {
-    write(1, "Contenido: [", strlen("Contenido: ["));
-    write(1, b, n);
-    write(1, "]\n", 2);
+if (n < 0) perror();
+
+else if (n <= sizeof(b)) {
+  write(1, "Contenido: [", strlen("Contenido: ["));
+  write(1, b, n);
+  write(1, "]\n", 2);
 }
+*/
+//============================proba read dos procesos=======================================
+char b[5];
+int pid = fork();
+
+if (pid < 0) perror();
+
+if (pid == 0) 
+  write(1, "\nHIJO: pido 5 caracteres\n", strlen("\nHIJO: pido 5 caracteres\n"));
+
+else
+  write(1, "\nPADRE: pido 5 caracteres\n", strlen("\nPADRE: pido 5 caracteres\n"));
+
+int n = read(b, 5); //els dos llegeixen
+
+if (n < 0) perror();
+
+else {
+  char message[32];
+  char *prefix;
+
+  if (pid == 0) prefix = "\nHIJO ha leido: [";
+
+  else prefix = "\nPADRE ha leido: [";
+
+  int len = 0;
+
+  while (prefix[len] != '\0') {
+    message[len] = prefix[len];
+    len++;
+  }
+
+  for (int i = 0; i < n; i++) message[len++] = b[i];
+
+  message[len++] = ']';
+  message[len++] = '\n';
+
+  write(1, message, len);
+}
+
+//fill exit
+if(pid == 0) exit();
 
 //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
