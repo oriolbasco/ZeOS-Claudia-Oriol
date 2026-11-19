@@ -153,13 +153,19 @@ main(void)
 
 //================================proba read=======================================================
   char b[5];
-  int n = read(b, 5);
+int n = read(b, 5);
 
+if (n < 0) perror();
+
+else {
+  write(1, "\nLeidos: ", strlen("\nLeidos: "));
   itoa(n, buff);
-  if (write(1, buff, strlen(buff)) < 0) perror();
-  if (write(1, "\n", 1) < 0) perror();
-  //veiem que hi ha a b:
-  if (write(1, b, strlen(b)) < 0) perror();
+  write(1, buff, strlen(buff));
+
+  write(1, "\nContenido: [", strlen("\nContenido: ["));
+  write(1, b, n);
+  write(1, "]\n", 2);
+}
 
 //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
