@@ -152,7 +152,8 @@ main(void)
 */
 
 //================================proba read=======================================================
-  char b[5];
+/*  
+char b[5];
 int n = read(b, 5);
 
 if (n < 0) perror();
@@ -166,6 +167,13 @@ else {
   write(1, b, n);
   write(1, "]\n", 2);
 }
+  */
+
+write(1, "\nANTES DEL READ\n", strlen("\nANTES DEL READ\n"));
+
+int n = read(b, 5);
+
+write(1, "\nDESPUES DEL READ\n", strlen("\nDESPUES DEL READ\n"));
 
 //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
