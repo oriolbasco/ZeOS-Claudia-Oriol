@@ -150,11 +150,23 @@ main(void)
     pid = fork();
   }
 */
-  //====================================================unic proces executantse(no volem idle)========================================
+
+//================================proba read=======================================================
+  char b[5];
+  int n = read(b, 5);
+
+  itoa(n, buff);
+  if (write(1, buff, strlen(buff)) < 0) perror();
+  if (write(1, "\n", 1) < 0) perror();
+  //veiem que hi ha a b:
+  if (write(1, b, strlen(b)) < 0) perror();
+
+//====================================================unic proces executantse(no volem idle)========================================
   while(1) {
-    int pid = getpid();
+    /*int pid = getpid();
     if (write(1, "\npid actual:\n", strlen("\npid actual:\n")) < 0) perror();
     itoa(pid, buff);
     if (write(1, buff, strlen(buff)) < 0) perror();
+    */
   }
 }

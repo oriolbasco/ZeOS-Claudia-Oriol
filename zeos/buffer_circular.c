@@ -7,6 +7,7 @@ void cbuf_init(struct circular_buffer *buf)
     buf->count = 0;
 }
 
+//push de caracter al bufer circular
 int cbuf_push(struct circular_buffer *buf, char c)
 {
     if (buf->count == CBUF_CAPACITY) return 0;  //ple
@@ -18,6 +19,7 @@ int cbuf_push(struct circular_buffer *buf, char c)
     return 1;
 }
 
+//guardem a c el primer caracter del bufer circular
 int cbuf_pop(struct circular_buffer *buf, char *c)
 {
     if (buf->count == 0) return 0;  //esta buit

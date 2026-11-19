@@ -8,6 +8,7 @@
 #include <mm_address.h>
 #include <sched.h>
 #include <errno.h>
+#include <buffer_circular.h>
 
 #define LECTURA 0
 #define ESCRIPTURA 1
@@ -153,6 +154,8 @@ int sys_fork()
   child_pcb->state = ST_READY;
 
   INIT_LIST_HEAD(&(child_pcb->list)); //inicialitzem la llista del fill
+  INIT_LIST_HEAD(&(child_pcb->read_anchor)); 
+
   update_process_state_rr(child_pcb, &ready_queue);
   return child_pcb->PID; //retornem el PID del fill
 }
@@ -183,8 +186,67 @@ void sys_exit()
   sched_next_rr(); //no tornem mai aqui
 }
 
-int sys_read(char* b, int maxchars) {
-  
+
+static int keyboard_read(char *b, int maxchars) {
+  struct task_struct *self = current();
+  int copied = 0;
+  int result;
+  char c;
+
+  if (maxchars < 0) return -EINVAL;
+
+  if (maxchars == 0) return 0;
+
+  if (!access_ok(VERIFY_WRITE, b, maxchars)) return -EFAULT;
+
+  //cada peticio entra un unic cop al final de la cua
+  list_add_tail(&self->read_anchor, &readqueue);
+
+  while (copied < maxchars) {
+    //si un altre proces esta llegint ens bloquejem
+    if (readqueue.next != &self->read_anchor) {
+      block_current_reader();
+      continue;
+    }
+
+    //es el nostre torn de llegir, pero falten caracters
+    if (!cbuf_pop(&keyboard_buffer, &c)) {
+      block_current_reader();
+      continue;
+    }
+
+    //copiem a l'espai d'usuari
+    if (copy_to_user(&c, b + copied, 1) < 0) {
+      result = -EFAULT;
+      goto finish;
+    }
+
+    copied++;
+  }
+
+  result = copied;
+
+finish:
+ //peticio de lectura acabada, treiem de cua
+  list_del(&self->read_anchor);
+  INIT_LIST_HEAD(&self->read_anchor);
+
+
+  //el seguent por aprofitar caracters que ja estiguin al buffer sense esperar altra interrupció
+  if (keyboard_buffer.count > 0) wake_first_reader();
+
+  return result;
+}
+
+
+int sys_read(void *st) {
+  unsigned int args[2];
+
+  if (!access_ok(VERIFY_READ, st, sizeof(args))) return -EFAULT;
+
+  if (copy_from_user(st, args, sizeof(args)) < 0) return -EFAULT;
+
+  return keyboard_read((char *)args[0], (int)args[1]);
 }
 
 int sys_ni_syscall()
