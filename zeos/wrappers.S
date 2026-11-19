@@ -66,3 +66,29 @@ ENTRY(exit)
 
 	popl %ebp
 	ret
+
+ENTRY(read)
+	pushl %ebp
+	movl %esp, %ebp
+
+	pushl %ebx
+
+	// posem a ebx l adreça de la pila on començen els parametres b i maxchars
+	lea 8(%ebp), %ebx
+
+	movl $3, %eax
+	int $0x93
+
+	popl %ebx
+
+	// Convertir l error del kernel a -1 y errno. 
+	cmpl $0, %eax
+	jge read_ok
+
+	negl %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+read_ok:
+	popl %ebp
+	ret

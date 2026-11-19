@@ -150,11 +150,77 @@ main(void)
     pid = fork();
   }
 */
-  //====================================================unic proces executantse(no volem idle)========================================
+
+//================================proba read un proceso=======================================================
+/*
+char b[5];
+char numero[24];
+
+write(1, "\nANTES DEL READ\n", strlen("\nANTES DEL READ\n"));
+
+int n = read(b, 5);
+
+write(1, "\nRetorno de read: ", strlen("\nRetorno de read: "));
+itoa(n, numero);
+write(1, numero, strlen(numero));
+write(1, "\n", 1);
+
+if (n < 0) perror();
+
+else if (n <= sizeof(b)) {
+  write(1, "Contenido: [", strlen("Contenido: ["));
+  write(1, b, n);
+  write(1, "]\n", 2);
+}
+*/
+//============================proba read dos procesos=======================================
+char b[5];
+int pid = fork();
+
+if (pid < 0) perror();
+
+if (pid == 0) 
+  write(1, "\nHIJO: pido 5 caracteres\n", strlen("\nHIJO: pido 5 caracteres\n"));
+
+else
+  write(1, "\nPADRE: pido 5 caracteres\n", strlen("\nPADRE: pido 5 caracteres\n"));
+
+int n = read(b, 5); //els dos llegeixen
+
+if (n < 0) perror();
+
+else {
+  char message[32];
+  char *prefix;
+
+  if (pid == 0) prefix = "\nHIJO ha leido: [";
+
+  else prefix = "\nPADRE ha leido: [";
+
+  int len = 0;
+
+  while (prefix[len] != '\0') {
+    message[len] = prefix[len];
+    len++;
+  }
+
+  for (int i = 0; i < n; i++) message[len++] = b[i];
+
+  message[len++] = ']';
+  message[len++] = '\n';
+
+  write(1, message, len);
+}
+
+//fill exit
+if(pid == 0) exit();
+
+//====================================================unic proces executantse(no volem idle)========================================
   while(1) {
-    int pid = getpid();
+    /*int pid = getpid();
     if (write(1, "\npid actual:\n", strlen("\npid actual:\n")) < 0) perror();
     itoa(pid, buff);
     if (write(1, buff, strlen(buff)) < 0) perror();
+    */
   }
 }

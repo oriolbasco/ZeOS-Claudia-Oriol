@@ -13,6 +13,8 @@
 #define DEFAULT_QUANTUM 10
 
 extern struct list_head ready_queue;
+extern struct list_head readqueue;
+
 extern struct task_struct *init_task;
 extern struct task_struct *idle_task;
 extern int ticks_restants;
@@ -26,6 +28,8 @@ struct task_struct {
   struct list_head list;	/* node del proces a la ready queue */
   unsigned int kernel_esp;
   enum state_t state;
+
+  struct list_head read_anchor; /*node del proces a la read queue*/
 };
 
 union task_union {
@@ -74,5 +78,9 @@ int needs_sched_rr(void);
 void sched_next_rr(void);
 
 void schedule(void);
+
+void block_current_reader(void);
+
+void wake_first_reader(void);
 
 #endif  /* __SCHED_H__ */

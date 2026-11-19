@@ -8,6 +8,8 @@
 #include <hardware.h>
 
 struct list_head ready_queue;
+struct list_head readqueue;
+
 struct task_struct *init_task;
 struct task_struct *idle_task;
 int ticks_restants;
@@ -58,6 +60,7 @@ void init_idle (void)
     idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem l'adreça de l'EBP fals que hem posat a la pila
     idle_pcb->quantum = DEFAULT_QUANTUM;
     idle_pcb->state = ST_READY;
+    INIT_LIST_HEAD(&idle_pcb->read_anchor);
 
     idle_task = idle_pcb;
 }
@@ -96,6 +99,7 @@ void init_task1(void)
     task1->dir_pages_baseAddr = DirAddress;
     task1->quantum = DEFAULT_QUANTUM;
     task1->state = ST_RUN;
+    INIT_LIST_HEAD(&task1->read_anchor);
     ticks_restants = task1->quantum;
 
     set_cr3(DirAddress); // el dir d'init passa a ser l'espai d'adreces actiu
@@ -118,9 +122,11 @@ void inner_task_switch(union task_union* new)
 	switch_stack(&current()->kernel_esp, new->task.kernel_esp); //cambio de pila (esp)
 }
 
+//incialització de cues
 void init_sched()
 {
 	INIT_LIST_HEAD(&ready_queue);
+    INIT_LIST_HEAD(&readqueue);
 }
 
 int assign_PID(void)
@@ -200,4 +206,31 @@ int get_quantum(struct task_struct *t)
 void set_quantum(struct task_struct *t, int new_quantum)
 {
     t->quantum = new_quantum;
+}
+
+//bloqueja al proces actual. 
+void block_current_reader(void)
+{
+    current()->state = ST_BLOCKED;
+
+    //escollim altre proces a executar, no el posem al ready_queue, esta bloquejat
+    sched_next_rr();
+
+    //quan el proces es torni a executar continuara aqui i tornara al seu sys_read
+}
+
+//despeta al primer lector si esta bloquejat
+void wake_first_reader(void)
+{
+    struct task_struct *reader;
+
+    if (list_empty(&readqueue)) return;
+
+    //el primer de la cua de lectors
+    reader = list_entry(readqueue.next, struct task_struct, read_anchor);
+
+    if (reader->state == ST_BLOCKED) {
+        list_add_tail(&reader->list, &ready_queue);
+        reader->state = ST_READY;
+    }
 }
