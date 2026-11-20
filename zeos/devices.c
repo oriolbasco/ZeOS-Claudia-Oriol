@@ -32,8 +32,8 @@ static void esc_execute(char final)
   {
     case 'H':
     {
-      int row = (nparams > 0 && params[0] > 0) ? params[0] : 1;
-      int col = (nparams > 1 && params[1] > 0) ? params[1] : 1;
+      int row = (params[0] > 0) ? params[0] : 1;
+      int col = (params[1] > 0) ? params[1] : 1;
       set_cursor(col - 1, row - 1);
       break;
     }
