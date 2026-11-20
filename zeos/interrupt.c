@@ -115,39 +115,38 @@ void keyboard_routine(void)
   unsigned char scancode = inb(0x60);
   unsigned char character;
 
-  
   static unsigned int pending_bytes = 0;
 
-  if (pending_bytes > 0) {
-      pending_bytes--;
-      return;
+  if (pending_bytes > 0)
+  {
+    pending_bytes--;
+    return;
   }
 
-  if (scancode == 0xE0) {
-      pending_bytes = 1;
-      return;
+  if (scancode == 0xE0) 
+  {
+    pending_bytes = 1;
+    return;
   }
 
-  if (scancode == 0xE1) {
-      pending_bytes = 5;
-      return;
+  if (scancode == 0xE1) 
+  {
+    pending_bytes = 5;
+    return;
   }
 
   /* Bit 7 a 1: se ha soltado la tecla */
-  if (scancode & 0x80)
-      return;
+  if (scancode & 0x80) return;
 
   /* Evitar accedir fora de char_map */
-  if (scancode >= sizeof(char_map) / sizeof(char_map[0]))
-      return;
+  if (scancode >= sizeof(char_map) / sizeof(char_map[0])) return;
 
   character = char_map[scancode];
 
   /* entrades sense caracter representadas por '\0'. */
-  if (character == '\0')
-      return;
+  if (character == '\0') return;
 
-  /* Si está ple, cbuf_push devuelve 0 y descarta tecla. */
+  /* Si esta ple, cbuf_push devuelve 0 y descarta tecla. */
   if (cbuf_push(&keyboard_buffer, character)) wake_first_reader();
 }
 
