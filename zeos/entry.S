@@ -80,16 +80,14 @@ ENTRY(keyboard_handler)
 ENTRY(clock_handler)
 	SAVE_ALL
 	EOI
-
 	call clock_routine
-
+.globl clock_handler_end
+clock_handler_end:
 	RESTORE_ALL
 	iret
 	
 ENTRY(ret_from_fork)
-    addl $4, %esp     //descarta argument
-    RESTORE_ALL
-    iret
+	ret
 	
 ENTRY(my_page_fault_handler)
 	SAVE_ALL
