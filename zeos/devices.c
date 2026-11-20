@@ -24,7 +24,7 @@ static const Byte ansi_to_vga[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
 static Byte fg = 2, bg = 0;
 
 /* S'executa quan arriba la lletra final
- * Parametre absent o 0 = valor per defecte */
+ * si algun param no es correcte es posa el per defecte */
 static void esc_execute(char final)
 {
   int i;
