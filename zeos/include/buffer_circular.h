@@ -1,7 +1,7 @@
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
 
-#define CBUF_SIZE 128
+#define CBUF_SIZE 10
 
 extern struct circular_buffer keyboard_buffer;
 
@@ -17,4 +17,4 @@ void cbuf_init(struct circular_buffer *buf);
 int cbuf_push(struct circular_buffer *buf, char c);
 int cbuf_pop(struct circular_buffer *buf, char *c);
 
-#endif	 //esta buit
+#endif
