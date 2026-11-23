@@ -8,7 +8,7 @@
 #include <hardware.h>
 
 struct list_head ready_queue;
-struct list_head readqueue;
+struct list_head read_queue;
 
 struct task_struct *init_task;
 struct task_struct *idle_task;
@@ -60,7 +60,7 @@ void init_idle (void)
     idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem l'adreça de l'EBP fals que hem posat a la pila
     idle_pcb->quantum = DEFAULT_QUANTUM;
     idle_pcb->state = ST_READY;
-    INIT_LIST_HEAD(&idle_pcb->read_anchor);
+    INIT_LIST_HEAD(&idle_pcb->read_list);
 
     idle_task = idle_pcb;
 }
@@ -99,7 +99,7 @@ void init_task1(void)
     task1->dir_pages_baseAddr = DirAddress;
     task1->quantum = DEFAULT_QUANTUM;
     task1->state = ST_RUN;
-    INIT_LIST_HEAD(&task1->read_anchor);
+    INIT_LIST_HEAD(&task1->read_list);
     ticks_restants = task1->quantum;
 
     set_cr3(DirAddress); // el dir d'init passa a ser l'espai d'adreces actiu
@@ -126,7 +126,7 @@ void inner_task_switch(union task_union* new)
 void init_sched()
 {
 	INIT_LIST_HEAD(&ready_queue);
-    INIT_LIST_HEAD(&readqueue);
+    INIT_LIST_HEAD(&read_queue);
 }
 
 int assign_PID(void)
@@ -208,7 +208,7 @@ void set_quantum(struct task_struct *t, int new_quantum)
     t->quantum = new_quantum;
 }
 
-//bloqueja al proces actual. 
+// bloqueja al proces actual
 void block_current_reader(void)
 {
     current()->state = ST_BLOCKED;
@@ -219,17 +219,18 @@ void block_current_reader(void)
     //quan el proces es torni a executar continuara aqui i tornara al seu sys_read
 }
 
-//despeta al primer lector si esta bloquejat
+// despeta al primer lector si esta bloquejat
 void wake_first_reader(void)
 {
     struct task_struct *reader;
 
-    if (list_empty(&readqueue)) return;
+    if (list_empty(&read_queue)) return;
 
     //el primer de la cua de lectors
-    reader = list_entry(readqueue.next, struct task_struct, read_anchor);
+    reader = list_entry(read_queue.next, struct task_struct, read_list);
 
-    if (reader->state == ST_BLOCKED) {
+    if (reader->state == ST_BLOCKED)
+    {
         list_add_tail(&reader->list, &ready_queue);
         reader->state = ST_READY;
     }

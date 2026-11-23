@@ -13,7 +13,7 @@
 #define DEFAULT_QUANTUM 10
 
 extern struct list_head ready_queue;
-extern struct list_head readqueue;
+extern struct list_head read_queue;
 
 extern struct task_struct *init_task;
 extern struct task_struct *idle_task;
@@ -29,7 +29,7 @@ struct task_struct {
   unsigned int kernel_esp;
   enum state_t state;
 
-  struct list_head read_anchor; /*node del proces a la read queue*/
+  struct list_head read_list; /*node del proces a la read queue*/
 };
 
 union task_union {
