@@ -114,16 +114,16 @@ void keyboard_routine(void)
 {
   unsigned char scancode = inb(0x60);
   unsigned char character;
-  static bool isArrow = false; /* ha de ser static per guardar se entre crides a la funcio, no te pq ser arrow hi ha altres caracters aixi*/
+  static int isArrow = 0; /* ha de ser static per guardar se entre crides a la funcio, no te pq ser arrow hi ha altres caracters aixi*/
 
   if (scancode == 0xE0) /* caracter que porta prefix E0 */
   {
-    isArrow = true;
+    isArrow = 1;
     return;
   }
 
-  bool despresE0 = isArrow;
-  isArrow = false;
+  int despresE0 = isArrow;
+  isArrow = 0;
 
   /* Bit 7  = 1 es que s esta deixant anar tecla */
   if (scancode & 0x80) return;
