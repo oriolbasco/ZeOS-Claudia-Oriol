@@ -154,7 +154,6 @@ int sys_fork()
   child_pcb->state = ST_READY;
 
   INIT_LIST_HEAD(&(child_pcb->list)); //inicialitzem la llista del fill
-  INIT_LIST_HEAD(&(child_pcb->read_list)); 
 
   update_process_state_rr(child_pcb, &ready_queue);
   return child_pcb->PID; //retornem el PID del fill
@@ -202,27 +201,30 @@ int sys_read(void *st)
   if (maxchars == 0) return 0;
   if (!access_ok(VERIFY_WRITE, b, maxchars)) return -EFAULT;
 
-  list_add_tail(&current()->read_list, &read_queue); // entrem a la cua un sol cop
-
   int copied = 0;
   char c;
 
+  // mentre un altre el tingui, ens bloquegem a la cua
+  while (reader != NULL && reader != current()) block_current(&blocked);
+  reader = current();
+
+  //si el buffer es buit, ens bloquegem fins que la interrupcio ens desperti
   while (copied < maxchars)
   {
-    if ((&current()->read_list != read_queue.next) || (!cbuf_pop(&keyboard_buffer, &c))) block_current_reader();
-    else 
+    if (!cbuf_pop(&keyboard_buffer, &c)) block_current(&blocked);
+    else
     {
-      if (copy_to_user(&c, b + copied, 1) < 0)
-      {
-        break;
-      }
+      if (copy_to_user(&c, b + copied, 1) < 0) break;
       ++copied;
     }
-    
-  } 
+  }
 
-  list_del(&current()->read_list);
-  if (keyboard_buffer.count > 0) wake_first_reader();
+  if (list_empty(&blocked)) reader = NULL;
+  else 
+  {
+    reader = list_head_to_task_struct(list_first(&blocked));
+    unblock(reader);
+  }
 
   if (copied > 0) return copied;
   else return -EFAULT; // ha fallat el copy_to_user del bucle

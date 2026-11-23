@@ -13,7 +13,7 @@
 #define DEFAULT_QUANTUM 10
 
 extern struct list_head ready_queue;
-extern struct list_head read_queue;
+extern struct task_struct *reader;
 
 extern struct task_struct *init_task;
 extern struct task_struct *idle_task;
@@ -25,11 +25,9 @@ struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
   page_table_entry * dir_pages_baseAddr;
   unsigned int quantum; /* Temps que li queda a un proces a dins de la cpu */
-  struct list_head list;	/* node del proces a la ready queue */
+  struct list_head list;	/* node del proces a la cua del seu estat (ready o bloquejats) */
   unsigned int kernel_esp;
   enum state_t state;
-
-  struct list_head read_list; /*node del proces a la read queue*/
 };
 
 union task_union {
@@ -79,8 +77,10 @@ void sched_next_rr(void);
 
 void schedule(void);
 
-void block_current_reader(void);
+void block_current(struct list_head *queue);
 
-void wake_first_reader(void);
+void unblock(struct task_struct *t);
+
+void wake_reader(void);
 
 #endif  /* __SCHED_H__ */
