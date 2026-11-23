@@ -54,6 +54,15 @@ ENTRY(fork)
 	movl $2, %eax // pos a la sys_call_table 
 	int	$0x93 // activem la trap
 
+	// Convertir l error del kernel a -1 y errno. 
+	cmpl $0, %eax
+	jge fork_ok
+
+	negl %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+fork_ok:
 	popl %ebp
 	ret
 
@@ -66,6 +75,7 @@ ENTRY(exit)
 
 	popl %ebp
 	ret
+
 
 ENTRY(read)
 	pushl %ebp
