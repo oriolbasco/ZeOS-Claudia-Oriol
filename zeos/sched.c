@@ -6,9 +6,10 @@
 #include <mm.h>
 #include <io.h>
 #include <hardware.h>
+#include <devices.h>
 
 struct list_head ready_queue;
-struct list_head read_queue;
+struct task_struct *reader = NULL; // qui te el torn del teclat
 
 struct task_struct *init_task;
 struct task_struct *idle_task;
@@ -60,7 +61,6 @@ void init_idle (void)
     idle_pcb->kernel_esp = (unsigned long) &(idle_union->stack[KERNEL_STACK_SIZE - 2]); // guardem l'adreça de l'EBP fals que hem posat a la pila
     idle_pcb->quantum = DEFAULT_QUANTUM;
     idle_pcb->state = ST_READY;
-    INIT_LIST_HEAD(&idle_pcb->read_list);
 
     idle_task = idle_pcb;
 }
@@ -99,7 +99,6 @@ void init_task1(void)
     task1->dir_pages_baseAddr = DirAddress;
     task1->quantum = DEFAULT_QUANTUM;
     task1->state = ST_RUN;
-    INIT_LIST_HEAD(&task1->read_list);
     ticks_restants = task1->quantum;
 
     set_cr3(DirAddress); // el dir d'init passa a ser l'espai d'adreces actiu
@@ -126,7 +125,7 @@ void inner_task_switch(union task_union* new)
 void init_sched()
 {
 	INIT_LIST_HEAD(&ready_queue);
-    INIT_LIST_HEAD(&read_queue);
+    INIT_LIST_HEAD(&blocked); // el codi base la declara pero no la inicialitza
 }
 
 int assign_PID(void)
@@ -147,7 +146,7 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dst_queue)
     if (dst_queue != NULL) 
     {
         list_add_tail(&t->list, dst_queue);
-        t->state = ST_READY;
+        t->state = (dst_queue == &ready_queue) ? ST_READY : ST_BLOCKED; // l'estat es la cua on esta
     } 
     else
     {
@@ -208,30 +207,21 @@ void set_quantum(struct task_struct *t, int new_quantum)
     t->quantum = new_quantum;
 }
 
-// bloqueja al proces actual
-void block_current_reader(void)
+// bloqueja el proces actual a la cua queue i n'escull un altre
+void block_current(struct list_head *queue)
 {
-    current()->state = ST_BLOCKED;
-
-    //escollim altre proces a executar, no el posem al ready_queue, esta bloquejat
-    sched_next_rr();
-
-    //quan el proces es torni a executar continuara aqui i tornara al seu sys_read
+    update_process_state_rr(current(), queue);
+    sched_next_rr(); // tornarem aqui quan ens despertin
 }
 
-// despeta al primer lector si esta bloquejat
-void wake_first_reader(void)
+// treu t de la cua on estigui bloquejat i el passa a ready
+void unblock(struct task_struct *t)
 {
-    struct task_struct *reader;
+    update_process_state_rr(t, &ready_queue);
+}
 
-    if (list_empty(&read_queue)) return;
-
-    //el primer de la cua de lectors
-    reader = list_entry(read_queue.next, struct task_struct, read_list);
-
-    if (reader->state == ST_BLOCKED)
-    {
-        list_add_tail(&reader->list, &ready_queue);
-        reader->state = ST_READY;
-    }
+// desperta el reader amb torn, pel seu nom
+void wake_reader(void)
+{
+    if (reader != NULL && reader->state == ST_BLOCKED) unblock(reader);
 }

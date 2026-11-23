@@ -156,7 +156,7 @@ void keyboard_routine(void)
   }
 
   /* si el buffer circular esta ple aixo retornara 0 i no guardara el caracter */
-  if (cbuf_push(&keyboard_buffer, character)) wake_first_reader();
+  if (cbuf_push(&keyboard_buffer, character)) wake_reader();
 }
 
 void clock_routine()
