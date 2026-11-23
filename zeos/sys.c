@@ -212,7 +212,10 @@ int sys_read(void *st)
     if ((&current()->read_list != read_queue.next) || (!cbuf_pop(&keyboard_buffer, &c))) block_current_reader();
     else 
     {
-      copy_to_user(&c, b + copied, 1);
+      if (copy_to_user(&c, b + copied, 1) < 0)
+      {
+        break;
+      }
       ++copied;
     }
     
@@ -221,7 +224,8 @@ int sys_read(void *st)
   list_del(&current()->read_list);
   if (keyboard_buffer.count > 0) wake_first_reader();
 
-  return copied;
+  if (copied > 0) return copied;
+  else return -EFAULT; // ha fallat el copy_to_user del bucle
 }
 
 int sys_ni_syscall()
