@@ -16,6 +16,7 @@
 
 extern int zeos_ticks;
 extern void ret_from_fork(void);
+extern void clock_handler_end(void);
 
 int check_fd(int fd, int permissions)
 {
@@ -144,11 +145,10 @@ int sys_fork()
 
   // Valor que rebra el fill com a resultat del fork. EAX=0; 
   child_union->stack[KERNEL_STACK_SIZE - 10] = 0;
-
-  // -17: parametre (ebx) empilat pel handler, el treu ret_from_fork
   // EBP inicial fals(consumit pel pop %ebp)
   child_union->stack[KERNEL_STACK_SIZE - 19] = 0;
-  child_union->stack[KERNEL_STACK_SIZE - 18] = (unsigned long)ret_from_fork; //direccio de ret_from_fork, fill no torna al handler de syscall
+  child_union->stack[KERNEL_STACK_SIZE - 18] = (unsigned long)ret_from_fork; //direccio de ret_from_fork
+  child_union->stack[KERNEL_STACK_SIZE - 17] = (unsigned long)clock_handler_end; // on hi havia l'ebx parametre, el fill torna a usuari pel codi del clock_handler
   child_pcb->kernel_esp = (unsigned int)&child_union->stack[KERNEL_STACK_SIZE - 19];
   child_pcb->PID = assign_PID(); //assignem un nou PID al fill
   child_pcb->state = ST_READY;
