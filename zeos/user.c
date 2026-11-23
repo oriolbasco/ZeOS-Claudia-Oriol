@@ -12,15 +12,7 @@ void print(char *s)
   if (write(1, s, strlen(s)) < 0) perror();
 }
 
-// itoa del codi base no tracta negatius
-void print_num(int n)
-{
-  if (n < 0) { print("-"); n = -n; }
-  itoa(n, buff);
-  print(buff);
-}
-
-// mostra els caracters llegits; les fletxes amb el seu nom (constants de keys.h, les mateixes que el kernel)
+// mostra els caracters llegits
 void print_chars(char *b, int n)
 {
   print("[");
@@ -264,8 +256,9 @@ if(pid == 0)
   espera(800);
   print("\nfem read(b, 3): ");
   int n = read(b, 3);
-  print("retorna "); 
-  print_num(n);
+  print("retorna ");
+  itoa(n, buff);
+  print(buff);
   print(" -> "); 
   print_chars(b, n);
 */
@@ -276,7 +269,9 @@ if(pid == 0)
   char b[16];
   print("\nPrem adalt, abaix, esquerra, dreta: ");
   int n = read(b, 4);
-  print("\nread ha retornat "); print_num(n);
+  print("\nread ha retornat "); 
+  itoa(n, buff);
+  print(buff);
   print(" -> "); print_chars(b, n);
 */
 
