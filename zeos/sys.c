@@ -8,6 +8,7 @@
 #include <mm_address.h>
 #include <sched.h>
 #include <errno.h>
+#include <buffer_circular.h>
 
 #define LECTURA 0
 #define ESCRIPTURA 1
@@ -15,6 +16,7 @@
 
 extern int zeos_ticks;
 extern void ret_from_fork(void);
+extern void clock_handler_end(void);
 
 int check_fd(int fd, int permissions)
 {
@@ -143,16 +145,16 @@ int sys_fork()
 
   // Valor que rebra el fill com a resultat del fork. EAX=0; 
   child_union->stack[KERNEL_STACK_SIZE - 10] = 0;
-
-  // -17: parametre (ebx) empilat pel handler, el treu ret_from_fork
   // EBP inicial fals(consumit pel pop %ebp)
   child_union->stack[KERNEL_STACK_SIZE - 19] = 0;
-  child_union->stack[KERNEL_STACK_SIZE - 18] = (unsigned long)ret_from_fork; //direccio de ret_from_fork, fill no torna al handler de syscall
+  child_union->stack[KERNEL_STACK_SIZE - 18] = (unsigned long)ret_from_fork; //direccio de ret_from_fork
+  child_union->stack[KERNEL_STACK_SIZE - 17] = (unsigned long)clock_handler_end; // on hi havia l'ebx parametre, el fill torna a usuari pel codi del clock_handler
   child_pcb->kernel_esp = (unsigned int)&child_union->stack[KERNEL_STACK_SIZE - 19];
   child_pcb->PID = assign_PID(); //assignem un nou PID al fill
   child_pcb->state = ST_READY;
 
   INIT_LIST_HEAD(&(child_pcb->list)); //inicialitzem la llista del fill
+
   update_process_state_rr(child_pcb, &ready_queue);
   return child_pcb->PID; //retornem el PID del fill
 }
@@ -181,6 +183,51 @@ void sys_exit()
   del_ss_pag(dir, (unsigned int)UPTAddress >> 12);
 
   sched_next_rr(); //no tornem mai aqui
+}
+
+
+int sys_read(void *st) 
+{
+  unsigned int args[2];
+
+  if (!access_ok(VERIFY_READ, st, sizeof(args))) return -EFAULT;
+
+  if (copy_from_user(st, args, sizeof(args)) < 0) return -EFAULT;
+
+  char *b = (char *)args[0];
+  int maxchars = (int)args[1];
+
+  if (b == NULL || maxchars < 0) return -EINVAL;
+  if (maxchars == 0) return 0;
+  if (!access_ok(VERIFY_WRITE, b, maxchars)) return -EFAULT;
+
+  int copied = 0;
+  char c;
+
+  // mentre un altre el tingui, ens bloquegem a la cua
+  while (reader != NULL && reader != current()) block_current(&blocked);
+  reader = current();
+
+  //si el buffer es buit, ens bloquegem fins que la interrupcio ens desperti
+  while (copied < maxchars)
+  {
+    if (!cbuf_pop(&keyboard_buffer, &c)) block_current(&blocked);
+    else
+    {
+      if (copy_to_user(&c, b + copied, 1) < 0) break;
+      ++copied;
+    }
+  }
+
+  if (list_empty(&blocked)) reader = NULL;
+  else 
+  {
+    reader = list_head_to_task_struct(list_first(&blocked));
+    unblock(reader);
+  }
+
+  if (copied > 0) return copied;
+  else return -EFAULT; // ha fallat el copy_to_user del bucle
 }
 
 int sys_ni_syscall()

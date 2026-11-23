@@ -11,6 +11,7 @@
 #include <mm.h>
 #include <io.h>
 #include <utils.h>  
+#include <buffer_circular.h>
 
 int (*usr_main)(void) = (void *) (PAG_LOG_INIT_CODE*PAGE_SIZE);
 unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
@@ -52,6 +53,9 @@ int __attribute__((__section__(".text.main")))
 
   /* Initialize Scheduling */
   init_sched();
+
+  /*inicialitzacio del buffer circular*/
+  cbuf_init(&keyboard_buffer);
 
   /* Initialize task 1 data */
   init_task1();

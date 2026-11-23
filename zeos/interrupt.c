@@ -11,9 +11,10 @@
 #include <devices.h>
 #include <errno.h>
 #include <sched.h>
-
+#include <keys.h>
 #include <zeos_interrupt.h>
 #include <zeos_mm.h>
+#include <buffer_circular.h>
 
 #define LECTURA 0
 #define ESCRIPTURA 1
@@ -23,6 +24,8 @@ Register    idtR;
 
 char buff[256];
 extern int zeos_ticks;
+
+struct circular_buffer keyboard_buffer;
 
 struct sys_stack 
 {
@@ -107,17 +110,53 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
   idt[vector].highOffset      = highWord((DWord)handler);
 }
 
-void keyboard_routine()
+void keyboard_routine(void)
 {
-	unsigned char c_inp = inb(0x60);
-	if ((c_inp & 0b10000000) == 0) 
-	{
-		unsigned char c_out = char_map[(c_inp & 0b01111111)];
+  unsigned char scancode = inb(0x60);
+  unsigned char character;
+  static int prefixE0 = 0; /* ha de ser static per guardar se entre crides a la funcio, no te pq ser arrow hi ha altres caracters aixi*/
 
-		if (c_out < 'a' && c_out > '9') c_out = 'C';
+  if (scancode == 0xE0) /* caracter que porta prefix E0 */
+  {
+    prefixE0 = 1;
+    return;
+  }
 
-		printc_xy(76,0,c_out);
-	}
+  int despresE0 = prefixE0;
+  prefixE0 = 0;
+
+  /* Bit 7  = 1 es que s esta deixant anar tecla */
+  if (scancode & 0x80) return;
+
+  if (despresE0) 
+  {
+    switch (scancode)
+    {
+      case 0x4D:
+        character = KEY_RIGHT;
+        break;
+      case 0x4B:
+        character = KEY_LEFT;
+        break;
+      case 0x48:
+        character = KEY_UP;
+        break;
+      case 0x50:
+        character = KEY_DOWN;
+        break;
+      default: return;
+    }
+  }
+  else 
+  {
+    /* fora del char_map */
+    if (scancode >= sizeof(char_map)) return;
+    character = char_map[scancode]; 
+    if (character == '\0') return;
+  }
+
+  /* si el buffer circular esta ple aixo retornara 0 i no guardara el caracter */
+  if (cbuf_push(&keyboard_buffer, character)) wake_reader();
 }
 
 void clock_routine()

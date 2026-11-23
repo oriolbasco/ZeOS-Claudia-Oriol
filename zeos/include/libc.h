@@ -19,5 +19,6 @@ int getpid(void);
 void perror(void);
 
 int write (int fd, char * buffer, int size);
+int read(char* b, int maxchars);
 
 #endif  /* __LIBC_H__ */

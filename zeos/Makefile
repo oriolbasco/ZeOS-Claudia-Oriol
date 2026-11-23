@@ -33,7 +33,8 @@ SYSOBJ = \
 	devices.o \
 	utils.o \
 	list.o \
-	hardware.o
+	hardware.o \
+	buffer_circular.o
 
 LIBZEOS = -L . -l zeos
 
@@ -83,6 +84,8 @@ user.o:user.c $(INCLUDEDIR)/libc.h
 interrupt.o:interrupt.c $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/types.h
 
 io.o:io.c $(INCLUDEDIR)/io.h
+
+buffer_circular.o: buffer_circular.c $(INCLUDEDIR)/buffer_circular.h
 
 sched.o:sched.c $(INCLUDEDIR)/sched.h
 

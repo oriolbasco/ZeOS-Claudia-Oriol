@@ -6,8 +6,11 @@
 #include <mm.h>
 #include <io.h>
 #include <hardware.h>
+#include <devices.h>
 
 struct list_head ready_queue;
+struct task_struct *reader = NULL; // qui te el torn del teclat
+
 struct task_struct *init_task;
 struct task_struct *idle_task;
 int ticks_restants;
@@ -118,9 +121,11 @@ void inner_task_switch(union task_union* new)
 	switch_stack(&current()->kernel_esp, new->task.kernel_esp); //cambio de pila (esp)
 }
 
+//incialització de cues
 void init_sched()
 {
 	INIT_LIST_HEAD(&ready_queue);
+    INIT_LIST_HEAD(&blocked); // el codi base la declara pero no la inicialitza
 }
 
 int assign_PID(void)
@@ -141,7 +146,7 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dst_queue)
     if (dst_queue != NULL) 
     {
         list_add_tail(&t->list, dst_queue);
-        t->state = ST_READY;
+        t->state = (dst_queue == &ready_queue) ? ST_READY : ST_BLOCKED; // l'estat es la cua on esta
     } 
     else
     {
@@ -200,4 +205,23 @@ int get_quantum(struct task_struct *t)
 void set_quantum(struct task_struct *t, int new_quantum)
 {
     t->quantum = new_quantum;
+}
+
+// bloqueja el proces actual a la cua queue i n'escull un altre
+void block_current(struct list_head *queue)
+{
+    update_process_state_rr(current(), queue);
+    sched_next_rr(); // tornarem aqui quan ens despertin
+}
+
+// treu t de la cua on estigui bloquejat i el passa a ready
+void unblock(struct task_struct *t)
+{
+    update_process_state_rr(t, &ready_queue);
+}
+
+// desperta el reader amb torn, pel seu nom
+void wake_reader(void)
+{
+    if (reader != NULL && reader->state == ST_BLOCKED) unblock(reader);
 }
