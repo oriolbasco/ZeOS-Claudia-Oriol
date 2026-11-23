@@ -1,4 +1,5 @@
 #include <libc.h>
+#include <keys.h>
 
 char buff[24];
 
@@ -19,25 +20,25 @@ void print_num(int n)
   print(buff);
 }
 
-// mostra els caracters llegits; els no imprimibles (fletxes) en hexadecimal
+// mostra els caracters llegits; les fletxes amb el seu nom (constants de keys.h, les mateixes que el kernel)
 void print_chars(char *b, int n)
 {
-  char *hex = "0123456789abcdef";
   print("[");
   for (int i = 0; i < n; i++)
   {
-    unsigned char c = b[i];
-    if (c >= 0x20 && c < 0x7f) write(1, (char *)&b[i], 1);
-    else
+    switch (b[i])
     {
-      char h[6] = {'<', hex[c >> 4], hex[c & 0xF], '>', 0};
-      print(h);
+      case KEY_UP: print("<UP>"); break;
+      case KEY_DOWN: print("<DOWN>"); break;
+      case KEY_LEFT: print("<LEFT>"); break;
+      case KEY_RIGHT: print("<RIGHT>"); break;
+      default: if (write(1, &b[i], 1) < 0) perror(); break;
     }
   }
   print("]");
 }
 
-// bucle d'espera per teclejar abans del read (unitats ~ les del joc de proves del planificador)
+// bucle d'espera per teclejar abans del read
 void espera(int vegades)
 {
   for (int v = 0; v < vegades; ++v)
@@ -219,8 +220,8 @@ int pid = fork();
 
 if (pid < 0) perror();
 
-if (pid == 0) write(1, "\nFILL: demana 5 caracters\n", strlen("\nFILL: demana 5 caracters\n"));
-else write(1, "\nPARE: demana 5 caracters\n", strlen("\nPARE: demana 5 caracters\n"));
+if (pid == 0) print("\nFILL: demana 5 caracters\n");
+else print("\nPARE: demana 5 caracters\n");
 
 int n = read(b, 5); //els dos llegeixen
 
@@ -247,30 +248,35 @@ else
   message[len++] = ']';
   message[len++] = '\n';
 
-  write(1, message, len);
+  if (write(1, message, len) < 0) perror();
 }
 
 //fill exit
-if(pid == 0) exit();
-
+if(pid == 0) 
+{
+  print("\nFILL acaba");
+  exit();
+}
 //===============================================tecles ja al buffer abans del read==========================
 /*
   char b[16];
-  print("\nTecleja 3 tecles ARA (durant l'espera)...");
-  espera(30);
-  print("\n[R2] Fem read(b, 3): ");
+  print("\ntecleja 3 tecles ARA (durant l'espera)...");
+  espera(800);
+  print("\nfem read(b, 3): ");
   int n = read(b, 3);
-  print("retorna "); print_num(n);
-  print(" -> "); print_chars(b, n);
+  print("retorna "); 
+  print_num(n);
+  print(" -> "); 
+  print_chars(b, n);
 */
 
 //==========================================proba fletxes========================================
-// amunt, avall, esquerra, dreta -> 0x11 0x12 0x13 0x14.
+// adalt, abaix, esquerra, dreta -> UP, DOWN, LEFT, RIGHT.
 /*
   char b[16];
-  print("\nPrem amunt, avall, esquerra, dreta: ");
+  print("\nPrem adalt, abaix, esquerra, dreta: ");
   int n = read(b, 4);
-  print("\n[R3] read ha retornat "); print_num(n);
+  print("\nread ha retornat "); print_num(n);
   print(" -> "); print_chars(b, n);
 */
 
