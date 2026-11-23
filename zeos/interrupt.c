@@ -11,7 +11,7 @@
 #include <devices.h>
 #include <errno.h>
 #include <sched.h>
-
+#include <keys.h>
 #include <zeos_interrupt.h>
 #include <zeos_mm.h>
 #include <buffer_circular.h>
@@ -114,40 +114,48 @@ void keyboard_routine(void)
 {
   unsigned char scancode = inb(0x60);
   unsigned char character;
+  static int prefixE0 = 0; /* ha de ser static per guardar se entre crides a la funcio, no te pq ser arrow hi ha altres caracters aixi*/
 
-  
-  static unsigned int pending_bytes = 0;
-
-  if (pending_bytes > 0) {
-      pending_bytes--;
-      return;
+  if (scancode == 0xE0) /* caracter que porta prefix E0 */
+  {
+    prefixE0 = 1;
+    return;
   }
 
-  if (scancode == 0xE0) {
-      pending_bytes = 1;
-      return;
+  int despresE0 = prefixE0;
+  prefixE0 = 0;
+
+  /* Bit 7  = 1 es que s esta deixant anar tecla */
+  if (scancode & 0x80) return;
+
+  if (despresE0) 
+  {
+    switch (scancode)
+    {
+      case 0x4D:
+        character = KEY_RIGHT;
+        break;
+      case 0x4B:
+        character = KEY_LEFT;
+        break;
+      case 0x48:
+        character = KEY_UP;
+        break;
+      case 0x50:
+        character = KEY_DOWN;
+        break;
+      default: return;
+    }
+  }
+  else 
+  {
+    /* fora del char_map */
+    if (scancode >= sizeof(char_map)) return;
+    character = char_map[scancode]; 
+    if (character == '\0') return;
   }
 
-  if (scancode == 0xE1) {
-      pending_bytes = 5;
-      return;
-  }
-
-  /* Bit 7 a 1: se ha soltado la tecla */
-  if (scancode & 0x80)
-      return;
-
-  /* Evitar accedir fora de char_map */
-  if (scancode >= sizeof(char_map) / sizeof(char_map[0]))
-      return;
-
-  character = char_map[scancode];
-
-  /* entrades sense caracter representadas por '\0'. */
-  if (character == '\0')
-      return;
-
-  /* Si está ple, cbuf_push devuelve 0 y descarta tecla. */
+  /* si el buffer circular esta ple aixo retornara 0 i no guardara el caracter */
   if (cbuf_push(&keyboard_buffer, character)) wake_first_reader();
 }
 

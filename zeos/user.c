@@ -1,10 +1,42 @@
 #include <libc.h>
+#include <keys.h>
 
 char buff[24];
 
 int pid;
 
 int globalVar = 20;
+
+void print(char *s)
+{
+  if (write(1, s, strlen(s)) < 0) perror();
+}
+
+// mostra els caracters llegits
+void print_chars(char *b, int n)
+{
+  print("[");
+  for (int i = 0; i < n; i++)
+  {
+    switch (b[i])
+    {
+      case KEY_UP: print("<UP>"); break;
+      case KEY_DOWN: print("<DOWN>"); break;
+      case KEY_LEFT: print("<LEFT>"); break;
+      case KEY_RIGHT: print("<RIGHT>"); break;
+      default: if (write(1, &b[i], 1) < 0) perror(); break;
+    }
+  }
+  print("]");
+}
+
+// bucle d'espera per teclejar abans del read
+void espera(int vegades)
+{
+  for (int v = 0; v < vegades; ++v)
+    for (int i = 0; i < 500000; ++i);
+}
+
 int __attribute__ ((__section__(".text.main")))
 main(void)
 {
@@ -93,7 +125,6 @@ main(void)
   if (write(1, "\n[pare] exit, a partir d'ara idle\n", strlen("\n[pare] exit, a partir d'ara idle\n")) < 0) perror();
 
 
-
   //======================================joc de proba modificar variable local i global(fill)==========================================
   int localVar = 10;
 
@@ -151,16 +182,17 @@ main(void)
   }
 */
 
-//================================proba read un proceso=======================================================
+//=====================================================JOC DE PROVES READ=====================================================
+//================================proba read un proces=======================================================
 /*
 char b[5];
 char numero[24];
 
-write(1, "\nANTES DEL READ\n", strlen("\nANTES DEL READ\n"));
+write(1, "\nABANS DEL READ\n", strlen("\nABANS DEL READ\n"));
 
 int n = read(b, 5);
 
-write(1, "\nRetorno de read: ", strlen("\nRetorno de read: "));
+write(1, "\nRetorn de read: ", strlen("\nRetorn de read: "));
 itoa(n, numero);
 write(1, numero, strlen(numero));
 write(1, "\n", 1);
@@ -168,38 +200,37 @@ write(1, "\n", 1);
 if (n < 0) perror();
 
 else if (n <= sizeof(b)) {
-  write(1, "Contenido: [", strlen("Contenido: ["));
+  write(1, "Contingut: [", strlen("Contingut: ["));
   write(1, b, n);
   write(1, "]\n", 2);
 }
 */
+
 //============================proba read dos procesos=======================================
 char b[5];
 int pid = fork();
 
 if (pid < 0) perror();
 
-if (pid == 0) 
-  write(1, "\nHIJO: pido 5 caracteres\n", strlen("\nHIJO: pido 5 caracteres\n"));
-
-else
-  write(1, "\nPADRE: pido 5 caracteres\n", strlen("\nPADRE: pido 5 caracteres\n"));
+if (pid == 0) print("\nFILL: demana 5 caracters\n");
+else print("\nPARE: demana 5 caracters\n");
 
 int n = read(b, 5); //els dos llegeixen
 
 if (n < 0) perror();
-
-else {
+else 
+{
   char message[32];
   char *prefix;
 
-  if (pid == 0) prefix = "\nHIJO ha leido: [";
+  if (pid == 0) prefix = "\nFILL ha llegit: [";
 
-  else prefix = "\nPADRE ha leido: [";
+  else prefix = "\nPARE ha llegit: [";
 
   int len = 0;
 
-  while (prefix[len] != '\0') {
+  while (prefix[len] != '\0') 
+  {
     message[len] = prefix[len];
     len++;
   }
@@ -209,11 +240,40 @@ else {
   message[len++] = ']';
   message[len++] = '\n';
 
-  write(1, message, len);
+  if (write(1, message, len) < 0) perror();
 }
 
 //fill exit
-if(pid == 0) exit();
+if(pid == 0) 
+{
+  print("\nFILL acaba");
+  exit();
+}
+//===============================================tecles ja al buffer abans del read==========================
+/*
+  char b[16];
+  print("\ntecleja 3 tecles ARA (durant l'espera)...");
+  espera(800);
+  print("\nfem read(b, 3): ");
+  int n = read(b, 3);
+  print("retorna ");
+  itoa(n, buff);
+  print(buff);
+  print(" -> "); 
+  print_chars(b, n);
+*/
+
+//==========================================proba fletxes========================================
+// adalt, abaix, esquerra, dreta -> UP, DOWN, LEFT, RIGHT.
+/*
+  char b[16];
+  print("\nPrem adalt, abaix, esquerra, dreta: ");
+  int n = read(b, 4);
+  print("\nread ha retornat "); 
+  itoa(n, buff);
+  print(buff);
+  print(" -> "); print_chars(b, n);
+*/
 
 //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
