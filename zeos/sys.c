@@ -230,6 +230,43 @@ int sys_read(void *st)
   else return -EFAULT; // ha fallat el copy_to_user del bucle
 }
 
+/*
+  reserva una regió. Calcula quantitat de pagines necesita usuari.
+  Busca pagines virtuals i lliures i consecutives en l'espai d'usuari
+  Asigna i mapeja frames fisics
+  Guarda la direccio inicial i num de pagines en un registre kernell asignat al proces
+  Retorna direccio inicial
+*/
+char sys_malloc(void *st) {
+  unsigned int bytes_user;
+
+  if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return -EFAULT;
+
+  if (copy_from_user(st, bytes_user, sizeof(bytes_user)) < 0) return -EFAULT;
+
+  if (bytes_user < 0) return -EINVAL;
+  if (!access_ok(VERIFY_WRITE, bytes_user, sizeof(bytes_user))) return -EFAULT;
+
+
+}
+
+/*free(char*regio)
+  Busca regio en el registre del proces, punter ha de coincidir amb direccio inicial que retornat el malloc
+  Amb el num de pagines guardat kernell elimina mapeijos, frames fisics i registre 
+*/
+int sys_free(void *st) {
+  unsigned int regio_user;
+
+  if (!access_ok(VERIFY_READ, st, sizeof(regio_user))) return -EFAULT;
+
+  if (copy_from_user(st, regio_user, sizeof(regio_user)) < 0) return -EFAULT;
+
+  if (regio_user == NULL) return -EINVAL;
+  if (!access_ok(VERIFY_WRITE, regio_user, sizeof(regio_user))) return -EFAULT;
+
+  
+}
+
 int sys_ni_syscall()
 {
 	return -ENOSYS;
