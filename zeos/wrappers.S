@@ -110,7 +110,6 @@ ENTRY(malloc)
 
 	pushl %ebx
 
-	// posem a ebx l adreça de la pila on començen els parametres b i maxchars
 	lea 8(%ebp), %ebx
 
 	movl $5, %eax
@@ -137,7 +136,6 @@ ENTRY(free)
 
 	pushl %ebx
 
-	// posem a ebx l adreça de la pila on començen els parametres b i maxchars
 	lea 8(%ebp), %ebx
 
 	movl $6, %eax

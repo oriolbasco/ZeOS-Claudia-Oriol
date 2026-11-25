@@ -237,7 +237,7 @@ int sys_read(void *st)
   Guarda la direccio inicial i num de pagines en un registre kernell asignat al proces
   Retorna direccio inicial
 */
-char sys_malloc(void *st) {
+char *sys_malloc(void *st) {
   unsigned int bytes_user;
 
   if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return -EFAULT;
@@ -246,8 +246,61 @@ char sys_malloc(void *st) {
 
   if (bytes_user < 0) return -EINVAL;
   if (!access_ok(VERIFY_WRITE, bytes_user, sizeof(bytes_user))) return -EFAULT;
+  
+  unsigned int pages = 1 + ((unsigned int)bytes_user - 1) / PAGE_SIZE;
+  if (pages > TOTAL_PAGES - HEAP_FIRST_PAGE) return NULL;
+  
+  page_table_entry *dir = get_DIR(current()); //obtenim el directori del proces actual
+  page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12); //obtenim la taula de pagines d'usuari del proces actual
+
+  unsigned int first = 0;
+  unsigned int consecutive = 0;
+
+  //busquem pagines virtuals lliures i consecutives en l'espai d'usuari
+  for (unsigned int page = HEAP_FIRST_PAGE; page < TOTAL_PAGES; ++page) {
+    if (pt[page].bits.present) {
+      consecutive = 0; //si esta ocupada, reiniciem el comptador de consecutives
+    } 
+    else if (++consecutive == pages) {
+      first = page + 1 - pages; //direccio de la primera pagina virtual lliure consecutiva
+      break;
+    }
+  }
+
+  if (first == 0) return NULL; //no hi ha espai suficient
 
 
+  unsigned int page = first;
+  for (; page < first + pages; ++page) {
+    int frame = alloc_frame();
+
+    //si no hi ha frames fisics lliures, alliberem els que ja haviem asignat i retornem NULL
+    if (frame == -1) { 
+      while (page > first) {
+        --page;
+        unsigned int allocated_frame = get_frame(pt, page);
+        del_ss_pag(pt, page);
+        free_frame(allocated_frame);
+      }
+
+      set_cr3(dir);
+      return NULL; 
+    }
+    //assignem i mapejem el frame fisic a la pagina virtual
+    set_ss_pag(pt, page, frame, 1);
+  }
+
+  set_cr3(dir);
+  char *region = (char *)(L_USER_START + (unsigned long)first * PAGE_SIZE); //direccio inicial de la regió d'usuari
+  
+  //inicialitzem la regió a 0
+  for (unsigned int i = 0; i < pages * PAGE_SIZE; ++i) {
+    region[i] = 0;
+  }
+
+  pt[first].bits.avail |= HEAP_REGION_START; //inici de reserva de regió: avail=001
+  pt[first + pages - 1].bits.avail |= HEAP_REGION_END; //fi de reserva de regió: avail=010
+  return region;
 }
 
 /*free(char*regio)
@@ -263,7 +316,7 @@ int sys_free(void *st) {
 
   if (regio_user == NULL) return -EINVAL;
   if (!access_ok(VERIFY_WRITE, regio_user, sizeof(regio_user))) return -EFAULT;
-
+  
   
 }
 
