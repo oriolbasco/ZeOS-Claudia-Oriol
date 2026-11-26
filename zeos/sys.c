@@ -191,7 +191,6 @@ int sys_read(void *st)
   unsigned int args[2];
 
   if (!access_ok(VERIFY_READ, st, sizeof(args))) return -EFAULT;
-
   if (copy_from_user(st, args, sizeof(args)) < 0) return -EFAULT;
 
   char *b = (char *)args[0];
@@ -201,33 +200,120 @@ int sys_read(void *st)
   if (maxchars == 0) return 0;
   if (!access_ok(VERIFY_WRITE, b, maxchars)) return -EFAULT;
 
+  struct task_struct *task = current();
+  task->read_bytes = (unsigned int)maxchars; //guardem el num de bytes que necessita llegir el proces actual
+
+  if (reader == NULL) reader = task;
+
+  while (reader != task || keyboard_buffer.count < task->read_bytes) {
+    block_current(&blocked);
+  }
+
   int copied = 0;
   char c;
 
-  // mentre un altre el tingui, ens bloquegem a la cua
-  while (reader != NULL && reader != current()) block_current(&blocked);
-  reader = current();
-
-  //si el buffer es buit, ens bloquegem fins que la interrupcio ens desperti
-  while (copied < maxchars)
-  {
-    if (!cbuf_pop(&keyboard_buffer, &c)) block_current(&blocked);
-    else
-    {
-      if (copy_to_user(&c, b + copied, 1) < 0) break;
-      ++copied;
-    }
+  // Copiem els bytes del buffer circular a l'espai d'usuari
+  while (copied < maxchars && cbuf_pop(&keyboard_buffer, &c)) {
+    if (copy_to_user(&c, b + copied, 1) < 0) break;
+    ++copied;
   }
 
-  if (list_empty(&blocked)) reader = NULL;
-  else 
-  {
+  task->read_bytes = 0; //reiniciem el num de bytes que necessita llegir el proces actual
+
+  //no hi ha cap proces bloquejat
+  if (list_empty(&blocked)) { 
+    reader = NULL;
+  } 
+  //el seguent proces bloquejat es el seguent reader
+  else {
     reader = list_head_to_task_struct(list_first(&blocked));
-    unblock(reader);
+    wake_reader();
   }
 
   if (copied > 0) return copied;
   else return -EFAULT; // ha fallat el copy_to_user del bucle
+}
+
+/*
+  reserva una regió. Calcula quantitat de pagines necesita usuari.
+  Busca pagines virtuals i lliures i consecutives en l'espai d'usuari
+  Asigna i mapeja frames fisics
+  Guarda la direccio inicial i num de pagines en un registre kernell asignat al proces
+  Retorna direccio inicial
+*/
+char *sys_malloc(void *st) {
+  int bytes_user;
+
+  if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return NULL;
+  if (copy_from_user(st, &bytes_user, sizeof(bytes_user)) < 0) return NULL;
+  if (bytes_user <= 0) return NULL;
+  
+  unsigned int pages = 1 + ((unsigned int)bytes_user - 1) / PAGE_SIZE;
+  if (pages > TOTAL_PAGES - HEAP_FIRST_PAGE) return NULL;
+  
+  page_table_entry *dir = get_DIR(current()); //obtenim el directori del proces actual
+  page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12); //obtenim la taula de pagines d'usuari del proces actual
+
+  unsigned int first = 0;
+  unsigned int consecutive = 0;
+
+  //busquem pagines virtuals lliures i consecutives en l'espai d'usuari
+  for (unsigned int page = HEAP_FIRST_PAGE; page < TOTAL_PAGES; ++page) {
+    if (pt[page].bits.present) {
+      consecutive = 0; //si esta ocupada, reiniciem el comptador de consecutives
+    } 
+    else if (++consecutive == pages) {
+      first = page + 1 - pages; //direccio de la primera pagina virtual lliure consecutiva
+      break;
+    }
+  }
+
+  if (first == 0) return NULL; //no hi ha espai suficient
+
+
+  unsigned int page = first;
+  for (; page < first + pages; ++page) {
+    int frame = alloc_frame();
+
+    //si no hi ha frames fisics lliures, alliberem els que ja haviem asignat i retornem NULL
+    if (frame == -1) { 
+      while (page > first) {
+        --page;
+        unsigned int allocated_frame = get_frame(pt, page);
+        del_ss_pag(pt, page);
+        free_frame(allocated_frame);
+      }
+
+      set_cr3(dir);
+      return NULL; 
+    }
+    //assignem i mapejem el frame fisic a la pagina virtual
+    set_ss_pag(pt, page, frame, 1);
+  }
+
+  set_cr3(dir);
+  char *region = (char *)(L_USER_START + (unsigned long)first * PAGE_SIZE); //direccio inicial de la regió d'usuari
+  
+  //inicialitzem la regió a 0
+  for (unsigned int i = 0; i < pages * PAGE_SIZE; ++i) {
+    region[i] = 0;
+  }
+
+  pt[first].bits.avail |= HEAP_REGION_START; //inici de reserva de regió: avail=001
+  pt[first + pages - 1].bits.avail |= HEAP_REGION_END; //fi de reserva de regió: avail=010
+  return region;
+}
+
+/*free(char*regio)
+  Busca regio en el registre del proces, punter ha de coincidir amb direccio inicial que retornat el malloc
+  Amb el num de pagines guardat kernell elimina mapeijos, frames fisics i registre 
+*/
+int sys_free(void *st) {
+  char *region;
+
+  if (!access_ok(VERIFY_READ, st, sizeof(region))) return -EFAULT;
+  if (copy_from_user(st, &region, sizeof(region)) < 0) return -EFAULT;
+
 }
 
 int sys_ni_syscall()

@@ -102,3 +102,55 @@ ENTRY(read)
 read_ok:
 	popl %ebp
 	ret
+
+
+ENTRY(malloc)
+	pushl %ebp
+	movl %esp, %ebp
+
+	pushl %ebx
+
+	lea 8(%ebp), %ebx
+
+	movl $5, %eax
+	int $0x93
+
+	popl %ebx
+
+	// Convertir l error del kernel a -1 y errno. 
+	cmpl $0, %eax
+	jge read_ok
+
+	negl %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+malloc_ok:
+	popl %ebp
+	ret
+
+
+ENTRY(free)
+	pushl %ebp
+	movl %esp, %ebp
+
+	pushl %ebx
+
+	lea 8(%ebp), %ebx
+
+	movl $6, %eax
+	int $0x93
+
+	popl %ebx
+
+	// Convertir l error del kernel a -1 y errno. 
+	cmpl $0, %eax
+	jge read_ok
+
+	negl %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+free_ok:
+	popl %ebp
+	ret
