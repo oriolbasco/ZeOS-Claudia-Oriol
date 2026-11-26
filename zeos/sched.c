@@ -224,7 +224,9 @@ void unblock(struct task_struct *t)
 // desperta el reader amb torn, pel seu nom
 void wake_reader(void)
 {
-    if (reader != NULL && reader->state == ST_BLOCKED && keyboard_buffer.count >= reader->read_bytes) {
+    // nomes el despertem si ja te prou tecles o si el buffer s'ha omplert
+    if (reader != NULL && reader->state == ST_BLOCKED && (keyboard_buffer.count >= reader->read_bytes || keyboard_buffer.count == CBUF_SIZE)) 
+    {
         unblock(reader);
     }
 }

@@ -207,6 +207,7 @@ else if (n <= sizeof(b)) {
 */
 
 //============================proba read dos procesos=======================================
+/*
 char b[5];
 int pid = fork();
 
@@ -248,6 +249,17 @@ if(pid == 0)
 {
   print("\nFILL acaba");
   exit();
+}
+*/
+//==========================proba read mes gran que el buffer (CBUF_SIZE 10)===================
+char big[15];
+print("\nREAD de 15 (buffer de 10): escriu 15 tecles\n");
+int nb = read(big, 15);
+if (nb < 0) perror();
+else {
+  print("\nHa llegit: [");
+  write(1, big, nb);
+  print("]\n");
 }
 //===============================================tecles ja al buffer abans del read==========================
 /*
