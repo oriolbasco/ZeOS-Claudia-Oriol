@@ -125,7 +125,7 @@ ENTRY(malloc)
 	movl %eax, errno
 	movl $-1, %eax
 
-read_ok:
+malloc_ok:
 	popl %ebp
 	ret
 
@@ -151,6 +151,6 @@ ENTRY(free)
 	movl %eax, errno
 	movl $-1, %eax
 
-read_ok:
+free_ok:
 	popl %ebp
 	ret

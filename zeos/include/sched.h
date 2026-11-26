@@ -19,8 +19,6 @@ extern struct task_struct *init_task;
 extern struct task_struct *idle_task;
 extern int ticks_restants;
 
-unsigned int read_bytes;
-
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
