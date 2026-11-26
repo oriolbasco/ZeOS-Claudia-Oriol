@@ -242,11 +242,11 @@ int sys_read(void *st)
   Retorna direccio inicial
 */
 char *sys_malloc(void *st) {
-  unsigned int bytes_user;
+  int bytes_user;
+
   if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return NULL;
-  if (copy_from_user(st, bytes_user, sizeof(bytes_user)) < 0) return NULL;
-  if (bytes_user < 0) return NULL;
-  if (!access_ok(VERIFY_WRITE, bytes_user, sizeof(bytes_user))) return NULL;
+  if (copy_from_user(st, &bytes_user, sizeof(bytes_user)) < 0) return NULL;
+  if (bytes_user <= 0) return NULL;
   
   unsigned int pages = 1 + ((unsigned int)bytes_user - 1) / PAGE_SIZE;
   if (pages > TOTAL_PAGES - HEAP_FIRST_PAGE) return NULL;
@@ -309,16 +309,11 @@ char *sys_malloc(void *st) {
   Amb el num de pagines guardat kernell elimina mapeijos, frames fisics i registre 
 */
 int sys_free(void *st) {
-  unsigned int regio_user;
+  char *region;
 
-  if (!access_ok(VERIFY_READ, st, sizeof(regio_user))) return NULL;
+  if (!access_ok(VERIFY_READ, st, sizeof(region))) return -EFAULT;
+  if (copy_from_user(st, &region, sizeof(region)) < 0) return -EFAULT;
 
-  if (copy_from_user(st, regio_user, sizeof(regio_user)) < 0) return NULL;
-
-  if (regio_user == NULL) return NULL;
-  if (!access_ok(VERIFY_WRITE, regio_user, sizeof(regio_user))) return NULL;
-  
-  
 }
 
 int sys_ni_syscall()
