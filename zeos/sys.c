@@ -206,22 +206,17 @@ int sys_read(void *st)
   if (reader == NULL) reader = task;
 
   // esperem el torn
-  while (reader != task) block_current(&blocked);
+  if (reader != task) block_current(&blocked);
 
   int copied = 0;
-  int error = 0;
   char c;
 
   // si maxchars > CBUF_SIZE no caben tots buidem el buffer per tandes
-  while (copied < maxchars && !error) {
-    while (keyboard_buffer.count < task->read_bytes && keyboard_buffer.count < CBUF_SIZE) block_current(&blocked);
+  while (copied < maxchars) {
+    if (keyboard_buffer.count < task->read_bytes && keyboard_buffer.count < CBUF_SIZE) block_current(&blocked);
     while (copied < maxchars && cbuf_pop(&keyboard_buffer, &c)) // Copiem els bytes del buffer circular a l'espai d'usuari
     {
-      if (copy_to_user(&c, b + copied, 1) < 0) 
-      {
-        error = 1; 
-        break; 
-      }
+      copy_to_user(&c, b + copied, 1);
       ++copied;
       --task->read_bytes; // ara read_bytes son els bytes que encara falten
     }
@@ -239,8 +234,7 @@ int sys_read(void *st)
     wake_reader();
   }
 
-  if (copied > 0) return copied;
-  else return -EFAULT; // ha fallat el copy_to_user del bucle
+  return copied;
 }
 
 /*
