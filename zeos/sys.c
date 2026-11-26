@@ -205,27 +205,36 @@ int sys_read(void *st)
 
   if (reader == NULL) reader = task;
 
-  while (reader != task || keyboard_buffer.count < task->read_bytes) {
-    block_current(&blocked);
-  }
+  // esperem el torn
+  while (reader != task) block_current(&blocked);
 
   int copied = 0;
+  int error = 0;
   char c;
 
-  // Copiem els bytes del buffer circular a l'espai d'usuari
-  while (copied < maxchars && cbuf_pop(&keyboard_buffer, &c)) {
-    if (copy_to_user(&c, b + copied, 1) < 0) break;
-    ++copied;
+  // si maxchars > CBUF_SIZE no caben tots buidem el buffer per tandes
+  while (copied < maxchars && !error) {
+    while (keyboard_buffer.count < task->read_bytes && keyboard_buffer.count < CBUF_SIZE) block_current(&blocked);
+    while (copied < maxchars && cbuf_pop(&keyboard_buffer, &c)) // Copiem els bytes del buffer circular a l'espai d'usuari
+    {
+      if (copy_to_user(&c, b + copied, 1) < 0) 
+      {
+        error = 1; 
+        break; 
+      }
+      ++copied;
+      --task->read_bytes; // ara read_bytes son els bytes que encara falten
+    }
   }
 
   task->read_bytes = 0; //reiniciem el num de bytes que necessita llegir el proces actual
 
   //no hi ha cap proces bloquejat
-  if (list_empty(&blocked)) { 
-    reader = NULL;
-  } 
+  if (list_empty(&blocked)) reader = NULL;
+
   //el seguent proces bloquejat es el seguent reader
-  else {
+  else 
+  {
     reader = list_head_to_task_struct(list_first(&blocked));
     wake_reader();
   }
