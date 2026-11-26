@@ -20,5 +20,7 @@ void perror(void);
 
 int write (int fd, char * buffer, int size);
 int read(char* b, int maxchars);
+char *malloc(int num_bytes);
+int free(char *regio);
 
 #endif  /* __LIBC_H__ */

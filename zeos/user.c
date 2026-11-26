@@ -252,6 +252,7 @@ if(pid == 0)
 }
 */
 //==========================proba read mes gran que el buffer (CBUF_SIZE 10)===================
+/*
 char big[15];
 print("\nREAD de 15 (buffer de 10): escriu 15 tecles\n");
 int nb = read(big, 15);
@@ -261,6 +262,7 @@ else {
   write(1, big, nb);
   print("]\n");
 }
+  */
 //===============================================tecles ja al buffer abans del read==========================
 /*
   char b[16];
@@ -286,6 +288,29 @@ else {
   print(buff);
   print(" -> "); print_chars(b, n);
 */
+
+//==========================================proba malloc========================================
+print("Probando malloc(5000)...\n");
+char *p = malloc(5000);
+
+if (p == 0) {
+  print("ERROR: malloc(5000) devolvio NULL\n");
+} 
+else {
+  p[4095] = 'A';
+  p[4096] = 'B';
+  p[4999] = 'C';
+
+  if (p[4095] == 'A' && p[4096] == 'B' && p[4999] == 'C')
+    print("OK: se puede escribir y leer en las dos paginas\n");
+  else
+    print("ERROR: los valores leidos no coinciden\n");
+}
+
+if (malloc(5 * 1024 * 1024) == 0)
+  print("OK: una reserva demasiado grande devuelve NULL\n");
+else
+  print("ERROR: se acepto una reserva demasiado grande\n");
 
 //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
