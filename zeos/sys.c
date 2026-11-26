@@ -317,6 +317,33 @@ int sys_free(void *st) {
   if (!access_ok(VERIFY_READ, st, sizeof(region))) return -EFAULT;
   if (copy_from_user(st, &region, sizeof(region)) < 0) return -EFAULT;
 
+  unsigned long address = (unsigned long)region; //direccio inicial de la regió d'usuari a alliberar
+  if (address < L_USER_START || address % PAGE_SIZE != 0) return -EINVAL;
+
+  unsigned int first = (address - L_USER_START) / PAGE_SIZE; //pagina virtual inicial de la regió d'usuari a alliberar
+  if (first < HEAP_FIRST_PAGE || first >= TOTAL_PAGES) return -EINVAL;
+
+  page_table_entry *dir = get_DIR(current()); //obtenim el directori del proces actual
+  page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12); //obtenim la taula de pagines d'usuari del proces actual
+
+  if (!pt[first].bits.present || (pt[first].bits.avail & HEAP_REGION_START) == 0) return -EINVAL;
+
+  //busquem la pagina virtual final de la regió d'usuari a alliberar
+  unsigned int last = first;
+  while ((pt[last].bits.avail & HEAP_REGION_END) == 0) {
+    ++last;
+    if (last >= TOTAL_PAGES || !pt[last].bits.present || (pt[last].bits.avail & HEAP_REGION_START) != 0) return -EINVAL;
+  }
+
+  //desmapejem i alliberem els frames fisics de les pagines virtuals de la regió d'usuari
+  for (unsigned int page = first; page <= last; ++page) {
+    unsigned int frame = get_frame(pt, page);
+    del_ss_pag(pt, page);
+    free_frame(frame);
+  }
+
+  set_cr3(dir);
+  return 0;
 }
 
 int sys_ni_syscall()
