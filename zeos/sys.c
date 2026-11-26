@@ -243,10 +243,10 @@ int sys_read(void *st)
 */
 char *sys_malloc(void *st) {
   unsigned int bytes_user;
-  if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return -EFAULT;
-  if (copy_from_user(st, bytes_user, sizeof(bytes_user)) < 0) return -EFAULT;
-  if (bytes_user < 0) return -EINVAL;
-  if (!access_ok(VERIFY_WRITE, bytes_user, sizeof(bytes_user))) return -EFAULT;
+  if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return NULL;
+  if (copy_from_user(st, bytes_user, sizeof(bytes_user)) < 0) return NULL;
+  if (bytes_user < 0) return NULL;
+  if (!access_ok(VERIFY_WRITE, bytes_user, sizeof(bytes_user))) return NULL;
   
   unsigned int pages = 1 + ((unsigned int)bytes_user - 1) / PAGE_SIZE;
   if (pages > TOTAL_PAGES - HEAP_FIRST_PAGE) return NULL;
@@ -311,12 +311,12 @@ char *sys_malloc(void *st) {
 int sys_free(void *st) {
   unsigned int regio_user;
 
-  if (!access_ok(VERIFY_READ, st, sizeof(regio_user))) return -EFAULT;
+  if (!access_ok(VERIFY_READ, st, sizeof(regio_user))) return NULL;
 
-  if (copy_from_user(st, regio_user, sizeof(regio_user)) < 0) return -EFAULT;
+  if (copy_from_user(st, regio_user, sizeof(regio_user)) < 0) return NULL;
 
-  if (regio_user == NULL) return -EINVAL;
-  if (!access_ok(VERIFY_WRITE, regio_user, sizeof(regio_user))) return -EFAULT;
+  if (regio_user == NULL) return NULL;
+  if (!access_ok(VERIFY_WRITE, regio_user, sizeof(regio_user))) return NULL;
   
   
 }
