@@ -19,6 +19,8 @@ extern struct task_struct *init_task;
 extern struct task_struct *idle_task;
 extern int ticks_restants;
 
+unsigned int read_bytes;
+
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
@@ -28,6 +30,7 @@ struct task_struct {
   struct list_head list;	/* node del proces a la cua del seu estat (ready o bloquejats) */
   unsigned int kernel_esp;
   enum state_t state;
+  unsigned int read_bytes; /*per saber quants bytes necesita el proces llegir del read*/
 };
 
 union task_union {

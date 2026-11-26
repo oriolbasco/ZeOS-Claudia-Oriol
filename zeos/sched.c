@@ -7,6 +7,7 @@
 #include <io.h>
 #include <hardware.h>
 #include <devices.h>
+#include <buffer_circular.h>
 
 struct list_head ready_queue;
 struct task_struct *reader = NULL; // qui te el torn del teclat
@@ -223,5 +224,7 @@ void unblock(struct task_struct *t)
 // desperta el reader amb torn, pel seu nom
 void wake_reader(void)
 {
-    if (reader != NULL && reader->state == ST_BLOCKED) unblock(reader);
+    if (reader != NULL && reader->state == ST_BLOCKED && keyboard_buffer.count >= reader->read_bytes) {
+        unblock(reader);
+    }
 }

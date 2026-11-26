@@ -191,7 +191,6 @@ int sys_read(void *st)
   unsigned int args[2];
 
   if (!access_ok(VERIFY_READ, st, sizeof(args))) return -EFAULT;
-
   if (copy_from_user(st, args, sizeof(args)) < 0) return -EFAULT;
 
   char *b = (char *)args[0];
@@ -201,29 +200,34 @@ int sys_read(void *st)
   if (maxchars == 0) return 0;
   if (!access_ok(VERIFY_WRITE, b, maxchars)) return -EFAULT;
 
+  struct task_struct *task = current();
+  task->read_bytes = (unsigned int)maxchars; //guardem el num de bytes que necessita llegir el proces actual
+
+  if (reader == NULL) reader = task;
+
+  while (reader != task || keyboard_buffer.count < task->read_bytes) {
+    block_current(&blocked);
+  }
+
   int copied = 0;
   char c;
 
-  // mentre un altre el tingui, ens bloquegem a la cua
-  while (reader != NULL && reader != current()) block_current(&blocked);
-  reader = current();
-
-  //si el buffer es buit, ens bloquegem fins que la interrupcio ens desperti
-  while (copied < maxchars)
-  {
-    if (!cbuf_pop(&keyboard_buffer, &c)) block_current(&blocked);
-    else
-    {
-      if (copy_to_user(&c, b + copied, 1) < 0) break;
-      ++copied;
-    }
+  // Copiem els bytes del buffer circular a l'espai d'usuari
+  while (copied < maxchars && cbuf_pop(&keyboard_buffer, &c)) {
+    if (copy_to_user(&c, b + copied, 1) < 0) break;
+    ++copied;
   }
 
-  if (list_empty(&blocked)) reader = NULL;
-  else 
-  {
+  task->read_bytes = 0; //reiniciem el num de bytes que necessita llegir el proces actual
+
+  //no hi ha cap proces bloquejat
+  if (list_empty(&blocked)) { 
+    reader = NULL;
+  } 
+  //el seguent proces bloquejat es el seguent reader
+  else {
     reader = list_head_to_task_struct(list_first(&blocked));
-    unblock(reader);
+    wake_reader();
   }
 
   if (copied > 0) return copied;
@@ -239,11 +243,8 @@ int sys_read(void *st)
 */
 char *sys_malloc(void *st) {
   unsigned int bytes_user;
-
   if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return -EFAULT;
-
   if (copy_from_user(st, bytes_user, sizeof(bytes_user)) < 0) return -EFAULT;
-
   if (bytes_user < 0) return -EINVAL;
   if (!access_ok(VERIFY_WRITE, bytes_user, sizeof(bytes_user))) return -EFAULT;
   
