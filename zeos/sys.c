@@ -333,7 +333,7 @@ char *sys_malloc(void *st)
   //inicialitzem la regio a 0
   for (unsigned int i = 0; i < pages * PAGE_SIZE; ++i) region[i] = 0;
   
-  region[0] = (unsigned int)bytes_user;
+  *(int *)region = bytes_user; //capcalera: size de la regio als 4 primers bytes
     
   return region + 4;
 }
