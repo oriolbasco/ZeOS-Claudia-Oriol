@@ -290,6 +290,7 @@ else {
 */
 
 //==========================================proba malloc========================================
+/*
 print("proba malloc(5000)...\n");
 char *p = malloc(5000);
 
@@ -306,6 +307,41 @@ else
 
 if (malloc(5 * 1024 * 1024) == 0) print("OK: reserva masa gran\n");
 else print("ERROR: s accepta una reserva masa gran\n");
+*/
+
+//===========================================proba malloc i free========================================
+
+char *bloc = malloc(4097);
+
+if (bloc == 0) {
+  print("ERROR: ha fallat malloc(4097)\n");
+} else {
+  bloc[0] = 'A';
+  bloc[4096] = 'B';
+
+  if (free(bloc) != 0) {
+    print("ERROR: free ha fallat\n");
+  } 
+  
+  else {
+    char *nou = malloc(4097);
+
+    if (nou == 0) {
+      print("ERROR: la segona reserva ha fallat\n");
+    } 
+    else {
+      //comprovem que la nova reserva comenci a zero. 
+      if (nou[0] == 0 && nou[4096] == 0) {
+        print("OK: la nova reserva comenca a zero\n");
+      } 
+      else {
+        print("ERROR: la nova reserva conte dades antigues\n");
+      }
+
+      if (free(nou) != 0) print("ERROR: free(nou) ha fallat\n");
+    }
+  }
+}
 
 //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
