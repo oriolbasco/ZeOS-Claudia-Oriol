@@ -154,3 +154,29 @@ ENTRY(free)
 free_ok:
 	popl %ebp
 	ret
+
+
+ENTRY(create_thread)
+	pushl %ebp
+	movl %esp, %ebp
+
+	pushl %ebx
+
+	lea 8(%ebp), %ebx
+
+	movl $7, %eax
+	int $0x93
+
+	popl %ebx
+
+	// Convertir l error del kernel a -1 y errno. 
+	cmpl $0, %eax
+	jge read_ok
+
+	negl %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+threads_ok:
+	popl %ebp
+	ret

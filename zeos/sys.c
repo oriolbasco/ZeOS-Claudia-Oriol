@@ -373,6 +373,11 @@ int sys_free(void *st) {
   return 0;
 }
 
+int sys_create_thread(void* st)
+{
+  
+}
+
 int sys_ni_syscall()
 {
 	return -ENOSYS;
