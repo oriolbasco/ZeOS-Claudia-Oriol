@@ -311,7 +311,7 @@ else print("ERROR: s accepta una reserva masa gran\n");
 
 //===========================================proba malloc i free========================================
 
-/*
+
 char *bloc = malloc(4097);
 
 if (bloc == 0) {
@@ -343,10 +343,9 @@ if (bloc == 0) {
     }
   }
 }
-  */
 
 //=============================================proba free amb punter interior========================================
-
+/*
 char *p = malloc(16);
 
 if (p == 0) {
@@ -363,6 +362,7 @@ else {
     print("ERROR: resultat inesperat de free\n");
   }
 }
+  */
 
 //====================================================unic proces executantse(no volem idle)========================================
   while(1) {
