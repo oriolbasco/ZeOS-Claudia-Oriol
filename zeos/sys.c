@@ -292,6 +292,7 @@ char *sys_malloc(void *st)
     if (pt[page].bits.present) consecutive = 0; //si esta ocupada, reiniciem el comptador de consecutives
     else if (++consecutive == pages) 
     {
+      //page conte la ultima pagina lliure consecutiva
       first = page + 1 - pages; //direccio de la primera pagina virtual lliure consecutiva
       break;
     }
