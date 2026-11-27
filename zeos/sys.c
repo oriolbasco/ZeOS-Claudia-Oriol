@@ -349,27 +349,31 @@ int sys_free(void *st) {
   if (copy_from_user(st, &region, sizeof(region)) < 0) return -EFAULT;
 
   unsigned long addr = (unsigned long)region;
-  if (addr < L_USER_START) return -EINVAL;
-  if (addr & (PAGE_SIZE - 1)) return -EINVAL; //ha de ser l'adreca inicial retornada per malloc
-  unsigned int start = (addr - L_USER_START) >> 12;
 
-  //busquem la regio al vector del proces
-  struct heap_region *r = NULL;
-  for (int i = 0; i < MAX_REGIONS; ++i) {
-    struct heap_region *c = &current()->regions[i];
-    if (c->num_pages != 0 && c->start_page == start) { r = c; break; }
+  if (((addr - 4)&0xfff) != 0) return -EINVAL;
+  if (addr < L_USER_START + HEAP_FIRST_PAGE * PAGE_SIZE + 4) return -EINVAL;
+
+  int start = (addr - L_USER_START)/PAGE_SIZE;
+
+  page_table_entry *dir = get_DIR(current()); //obtenim el directori del proces actual
+  page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12); //obtenim la taula de pagines d'usuari del proces actual
+
+  if (pt[start].bits.present == 0) return -EINVAL;
+  int size = *((int *)(addr - 4));
+
+  if (size <= 0) return -EINVAL;
+  unsigned int pages = 1 + (((unsigned int)size + 4) - 1) / PAGE_SIZE;
+  if (start + pages > TOTAL_PAGES) return -EINVAL;
+
+  for (int page = start; page < start + pages; ++page) if (pt[page].bits.present == 0) return -EINVAL;
+  for (int page = start; page < start + pages; ++page)
+  {
+    free_frame(get_frame(pt, page));
+    del_ss_pag(pt,page);
   }
-  if (r == NULL) return -EINVAL;
 
-  page_table_entry *dir = get_DIR(current());
-  page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12);
+  set_cr3(dir);
 
-  for (unsigned int p = r->start_page; p < r->start_page + r->num_pages; ++p) {
-    free_frame(get_frame(pt, p));
-    del_ss_pag(pt, p);
-  }
-  r->num_pages = 0; //entrada lliure
-  set_cr3(dir); //buidem TLB
   return 0;
 }
 
