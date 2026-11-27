@@ -311,6 +311,7 @@ else print("ERROR: s accepta una reserva masa gran\n");
 
 //===========================================proba malloc i free========================================
 
+/*
 char *bloc = malloc(4097);
 
 if (bloc == 0) {
@@ -340,6 +341,26 @@ if (bloc == 0) {
 
       if (free(nou) != 0) print("ERROR: free(nou) ha fallat\n");
     }
+  }
+}
+  */
+
+//=============================================proba free amb punter interior========================================
+
+char *p = malloc(16);
+
+if (p == 0) {
+  print("ERROR: malloc(16) ha fallat\n");
+} 
+
+else {
+  int resultat_interior = free(p + 1);
+  int resultat_inici = free(p);
+
+  if (resultat_interior < 0 && resultat_inici == 0) {
+    print("OK: free rebutja el punter interior i accepta l'inici\n");
+  } else {
+    print("ERROR: resultat inesperat de free\n");
   }
 }
 
