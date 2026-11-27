@@ -8,10 +8,7 @@
 #define NUM_PAG_DATA 20
 #define PAGE_SIZE 0x1000
 
-#define FORK_TEMP_PAGE    (NUM_PAG_DATA + NUM_PAG_CODE)
-#define HEAP_FIRST_PAGE   (FORK_TEMP_PAGE + 1)
-#define HEAP_REGION_START 1U
-#define HEAP_REGION_END   2U
+#define HEAP_FIRST_PAGE ((NUM_PAG_DATA + NUM_PAG_CODE) + 1)
 
 /* Memory distribution */
 /***********************/

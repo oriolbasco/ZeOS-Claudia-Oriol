@@ -21,6 +21,15 @@ extern int ticks_restants;
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
+#define MAX_REGIONS 16
+
+/* Regio de heap d'un proces (semblant a vm_area_struct de Linux).
+   Pagines logiques [start_page, start_page + num_pages). num_pages == 0 -> entrada lliure */
+struct heap_region {
+  unsigned int start_page;
+  unsigned int num_pages;
+};
+
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
   page_table_entry * dir_pages_baseAddr;
@@ -29,6 +38,7 @@ struct task_struct {
   unsigned int kernel_esp;
   enum state_t state;
   unsigned int read_bytes; /*per saber quants bytes necesita el proces llegir del read*/
+  struct heap_region regions[MAX_REGIONS]; /* regions reservades amb malloc */
 };
 
 union task_union {

@@ -100,6 +100,7 @@ void init_task1(void)
     task1->dir_pages_baseAddr = DirAddress;
     task1->quantum = DEFAULT_QUANTUM;
     task1->state = ST_RUN;
+    for (int i = 0; i < MAX_REGIONS; ++i) task1->regions[i].num_pages = 0; // cap regio de heap
     ticks_restants = task1->quantum;
 
     set_cr3(DirAddress); // el dir d'init passa a ser l'espai d'adreces actiu

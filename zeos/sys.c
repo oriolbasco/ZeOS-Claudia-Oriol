@@ -143,6 +143,24 @@ int sys_fork()
     }
   }
 
+  //les regions de malloc s'hereden: el vector ja s'ha copiat amb el PCB, copiem les pagines
+  for (int r = 0; r < MAX_REGIONS; r++)
+  {
+    for (unsigned int p = parent_pcb->regions[r].start_page;
+         parent_pcb->regions[r].num_pages != 0 &&
+         p < parent_pcb->regions[r].start_page + parent_pcb->regions[r].num_pages; p++)
+    {
+      int frame = alloc_frame();
+      if (frame == -1) return -EAGAIN;
+      set_ss_pag(UPTFillAddress, p, frame, 1);
+
+      set_ss_pag(UPTPareAddress, tmp, frame, 0);
+      copy_data((void *)(L_USER_START + p * PAGE_SIZE), (void *)(L_USER_START + tmp * PAGE_SIZE), PAGE_SIZE);
+      del_ss_pag(UPTPareAddress, tmp);
+      set_cr3(get_DIR(parent_pcb));
+    }
+  }
+
   // Valor que rebra el fill com a resultat del fork. EAX=0; 
   child_union->stack[KERNEL_STACK_SIZE - 10] = 0;
   // EBP inicial fals(consumit pel pop %ebp)
@@ -173,6 +191,19 @@ void sys_exit()
       free_frame(UPTAddress[i].bits.pbase_addr);
       del_ss_pag(UPTAddress, i);
     }
+  }
+
+  //alliberem les regions de malloc que no s'han fet free
+  for (int r = 0; r < MAX_REGIONS; r++)
+  {
+    for (unsigned int p = pcb->regions[r].start_page;
+         pcb->regions[r].num_pages != 0 &&
+         p < pcb->regions[r].start_page + pcb->regions[r].num_pages; p++)
+    {
+      free_frame(UPTAddress[p].bits.pbase_addr);
+      del_ss_pag(UPTAddress, p);
+    }
+    pcb->regions[r].num_pages = 0;
   }
 
   //free_frame nomes els marca lliures, podem seguir fent servir la pila i el dir fins al task_switch
@@ -257,6 +288,13 @@ char *sys_malloc(void *st) {
   page_table_entry *dir = get_DIR(current()); //obtenim el directori del proces actual
   page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12); //obtenim la taula de pagines d'usuari del proces actual
 
+  //busquem una entrada lliure al vector de regions del proces
+  struct heap_region *slot = NULL;
+  for (int i = 0; i < MAX_REGIONS; ++i) {
+    if (current()->regions[i].num_pages == 0) { slot = &current()->regions[i]; break; }
+  }
+  if (slot == NULL) return NULL; //massa regions
+
   unsigned int first = 0;
   unsigned int consecutive = 0;
 
@@ -302,8 +340,9 @@ char *sys_malloc(void *st) {
     region[i] = 0;
   }
 
-  pt[first].bits.avail |= HEAP_REGION_START; //inici de reserva de regió: avail=001
-  pt[first + pages - 1].bits.avail |= HEAP_REGION_END; //fi de reserva de regió: avail=010
+  //registrem la regio al vector del proces
+  slot->start_page = first;
+  slot->num_pages = pages;
   return region;
 }
 
@@ -317,6 +356,29 @@ int sys_free(void *st) {
   if (!access_ok(VERIFY_READ, st, sizeof(region))) return -EFAULT;
   if (copy_from_user(st, &region, sizeof(region)) < 0) return -EFAULT;
 
+  unsigned long addr = (unsigned long)region;
+  if (addr < L_USER_START) return -EINVAL;
+  if (addr & (PAGE_SIZE - 1)) return -EINVAL; //ha de ser l'adreca inicial retornada per malloc
+  unsigned int start = (addr - L_USER_START) >> 12;
+
+  //busquem la regio al vector del proces
+  struct heap_region *r = NULL;
+  for (int i = 0; i < MAX_REGIONS; ++i) {
+    struct heap_region *c = &current()->regions[i];
+    if (c->num_pages != 0 && c->start_page == start) { r = c; break; }
+  }
+  if (r == NULL) return -EINVAL;
+
+  page_table_entry *dir = get_DIR(current());
+  page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12);
+
+  for (unsigned int p = r->start_page; p < r->start_page + r->num_pages; ++p) {
+    free_frame(get_frame(pt, p));
+    del_ss_pag(pt, p);
+  }
+  r->num_pages = 0; //entrada lliure
+  set_cr3(dir); //buidem TLB
+  return 0;
 }
 
 int sys_ni_syscall()
