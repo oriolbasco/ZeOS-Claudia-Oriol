@@ -11,6 +11,7 @@
 
 struct list_head ready_queue;
 struct task_struct *reader = NULL; // qui te el torn del teclat
+unsigned int read_bytes = 0; //quants bytes vol llegir el proces que te el torn del teclat
 
 struct task_struct *init_task;
 struct task_struct *idle_task;
@@ -226,7 +227,7 @@ void unblock(struct task_struct *t)
 void wake_reader(void)
 {
     // nomes el despertem si ja te prou tecles o si el buffer s'ha omplert
-    if (reader != NULL && reader->state == ST_BLOCKED && (keyboard_buffer.count >= reader->read_bytes || keyboard_buffer.count == CBUF_SIZE)) 
+    if (reader != NULL && reader->state == ST_BLOCKED && (keyboard_buffer.count >= read_bytes || keyboard_buffer.count == CBUF_SIZE)) 
     {
         unblock(reader);
     }

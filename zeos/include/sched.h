@@ -14,6 +14,7 @@
 
 extern struct list_head ready_queue;
 extern struct task_struct *reader;
+extern unsigned int read_bytes;
 
 extern struct task_struct *init_task;
 extern struct task_struct *idle_task;
@@ -37,7 +38,6 @@ struct task_struct {
   struct list_head list;	/* node del proces a la cua del seu estat (ready o bloquejats) */
   unsigned int kernel_esp;
   enum state_t state;
-  unsigned int read_bytes; /*per saber quants bytes necesita el proces llegir del read*/
   struct heap_region regions[MAX_REGIONS]; /* regions reservades amb malloc */
 };
 

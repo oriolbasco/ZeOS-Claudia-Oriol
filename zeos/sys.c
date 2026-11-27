@@ -232,7 +232,7 @@ int sys_read(void *st)
   if (!access_ok(VERIFY_WRITE, b, maxchars)) return -EFAULT;
 
   struct task_struct *task = current();
-  task->read_bytes = (unsigned int)maxchars; //guardem el num de bytes que necessita llegir el proces actual
+  read_bytes = (unsigned int)maxchars; //guardem el num de bytes que necessita llegir el proces actual
 
   if (reader == NULL) reader = task;
 
@@ -244,16 +244,16 @@ int sys_read(void *st)
 
   // si maxchars > CBUF_SIZE no caben tots buidem el buffer per tandes
   while (copied < maxchars) {
-    if (keyboard_buffer.count < task->read_bytes && keyboard_buffer.count < CBUF_SIZE) block_current(&blocked);
+    if (keyboard_buffer.count < read_bytes && keyboard_buffer.count < CBUF_SIZE) block_current(&blocked);
     while (copied < maxchars && cbuf_pop(&keyboard_buffer, &c)) // Copiem els bytes del buffer circular a l'espai d'usuari
     {
       copy_to_user(&c, b + copied, 1);
       ++copied;
-      --task->read_bytes; // ara read_bytes son els bytes que encara falten
+      --read_bytes; // ara read_bytes son els bytes que encara falten
     }
   }
 
-  task->read_bytes = 0; //reiniciem el num de bytes que necessita llegir el proces actual
+  read_bytes = 0; //reiniciem el num de bytes que necessita llegir el proces actual
 
   //no hi ha cap proces bloquejat
   if (list_empty(&blocked)) reader = NULL;
