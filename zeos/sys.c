@@ -269,41 +269,34 @@ int sys_read(void *st)
 }
 
 /*
-  reserva una regió. Calcula quantitat de pagines necesita usuari.
+  reserva una regio. Calcula quantitat de pagines necesita usuari.
   Busca pagines virtuals i lliures i consecutives en l'espai d'usuari
   Asigna i mapeja frames fisics
-  Guarda la direccio inicial i num de pagines en un registre kernell asignat al proces
   Retorna direccio inicial
 */
-char *sys_malloc(void *st) {
+char *sys_malloc(void *st) 
+{
   int bytes_user;
 
   if (!access_ok(VERIFY_READ, st, sizeof(bytes_user))) return NULL;
   if (copy_from_user(st, &bytes_user, sizeof(bytes_user)) < 0) return NULL;
   if (bytes_user <= 0) return NULL;
   
-  unsigned int pages = 1 + ((unsigned int)bytes_user - 1) / PAGE_SIZE;
+  unsigned int pages = 1 + (((unsigned int)bytes_user + 4) - 1) / PAGE_SIZE;
   if (pages > TOTAL_PAGES - HEAP_FIRST_PAGE) return NULL;
   
   page_table_entry *dir = get_DIR(current()); //obtenim el directori del proces actual
   page_table_entry *pt = (page_table_entry *)((unsigned long)dir[1].bits.pbase_addr << 12); //obtenim la taula de pagines d'usuari del proces actual
 
-  //busquem una entrada lliure al vector de regions del proces
-  struct heap_region *slot = NULL;
-  for (int i = 0; i < MAX_REGIONS; ++i) {
-    if (current()->regions[i].num_pages == 0) { slot = &current()->regions[i]; break; }
-  }
-  if (slot == NULL) return NULL; //massa regions
-
   unsigned int first = 0;
   unsigned int consecutive = 0;
 
   //busquem pagines virtuals lliures i consecutives en l'espai d'usuari
-  for (unsigned int page = HEAP_FIRST_PAGE; page < TOTAL_PAGES; ++page) {
-    if (pt[page].bits.present) {
-      consecutive = 0; //si esta ocupada, reiniciem el comptador de consecutives
-    } 
-    else if (++consecutive == pages) {
+  for (unsigned int page = HEAP_FIRST_PAGE; page < TOTAL_PAGES; ++page) 
+  {
+    if (pt[page].bits.present) consecutive = 0; //si esta ocupada, reiniciem el comptador de consecutives
+    else if (++consecutive == pages) 
+    {
       first = page + 1 - pages; //direccio de la primera pagina virtual lliure consecutiva
       break;
     }
@@ -311,14 +304,16 @@ char *sys_malloc(void *st) {
 
   if (first == 0) return NULL; //no hi ha espai suficient
 
-
-  unsigned int page = first;
-  for (; page < first + pages; ++page) {
+  
+  for (unsigned int page = first; page < first + pages; ++page) 
+  {
     int frame = alloc_frame();
 
     //si no hi ha frames fisics lliures, alliberem els que ja haviem asignat i retornem NULL
-    if (frame == -1) { 
-      while (page > first) {
+    if (frame == -1) 
+    { 
+      while (page > first) 
+      {
         --page;
         unsigned int allocated_frame = get_frame(pt, page);
         del_ss_pag(pt, page);
@@ -333,17 +328,14 @@ char *sys_malloc(void *st) {
   }
 
   set_cr3(dir);
-  char *region = (char *)(L_USER_START + (unsigned long)first * PAGE_SIZE); //direccio inicial de la regió d'usuari
-  
-  //inicialitzem la regió a 0
-  for (unsigned int i = 0; i < pages * PAGE_SIZE; ++i) {
-    region[i] = 0;
-  }
+  char *region = (char *)(L_USER_START + (unsigned long)first * PAGE_SIZE); //direccio inicial de la regio d'usuari
 
-  //registrem la regio al vector del proces
-  slot->start_page = first;
-  slot->num_pages = pages;
-  return region;
+  //inicialitzem la regio a 0
+  for (unsigned int i = 0; i < pages * PAGE_SIZE; ++i) region[i] = 0;
+  
+  *(int *)region = bytes_user; //capcalera: size de la regio als 4 primers bytes
+    
+  return region + 4;
 }
 
 /*free(char*regio)
