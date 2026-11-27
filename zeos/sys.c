@@ -143,22 +143,20 @@ int sys_fork()
     }
   }
 
-  //les regions de malloc s'hereden: el vector ja s'ha copiat amb el PCB, copiem les pagines
-  for (int r = 0; r < MAX_REGIONS; r++)
+  // Copiem les pagines presents del heap a la mateixa adreca virtual.
+  for (unsigned int p = HEAP_FIRST_PAGE; p < TOTAL_PAGES; ++p)
   {
-    for (unsigned int p = parent_pcb->regions[r].start_page;
-         parent_pcb->regions[r].num_pages != 0 &&
-         p < parent_pcb->regions[r].start_page + parent_pcb->regions[r].num_pages; p++)
-    {
-      int frame = alloc_frame();
-      if (frame == -1) return -EAGAIN;
-      set_ss_pag(UPTFillAddress, p, frame, 1);
+    if (!UPTPareAddress[p].bits.present) continue;
 
-      set_ss_pag(UPTPareAddress, tmp, frame, 0);
-      copy_data((void *)(L_USER_START + p * PAGE_SIZE), (void *)(L_USER_START + tmp * PAGE_SIZE), PAGE_SIZE);
-      del_ss_pag(UPTPareAddress, tmp);
-      set_cr3(get_DIR(parent_pcb));
-    }
+    int frame = alloc_frame();
+    if (frame == -1) return -EAGAIN;
+
+    set_ss_pag(UPTFillAddress, p, frame, 1);
+
+    set_ss_pag(UPTPareAddress, tmp, frame, 0);
+    copy_data((void *)(L_USER_START + p * PAGE_SIZE), (void *)(L_USER_START + tmp * PAGE_SIZE), PAGE_SIZE);
+    del_ss_pag(UPTPareAddress, tmp);
+    set_cr3(get_DIR(parent_pcb));
   }
 
   // Valor que rebra el fill com a resultat del fork. EAX=0; 
@@ -193,17 +191,14 @@ void sys_exit()
     }
   }
 
-  //alliberem les regions de malloc que no s'han fet free
-  for (int r = 0; r < MAX_REGIONS; r++)
+  // Alliberem totes les pagines del heap que encara estan mapejades.
+  for (unsigned int p = HEAP_FIRST_PAGE; p < TOTAL_PAGES; ++p)
   {
-    for (unsigned int p = pcb->regions[r].start_page;
-         pcb->regions[r].num_pages != 0 &&
-         p < pcb->regions[r].start_page + pcb->regions[r].num_pages; p++)
-    {
-      free_frame(UPTAddress[p].bits.pbase_addr);
-      del_ss_pag(UPTAddress, p);
-    }
-    pcb->regions[r].num_pages = 0;
+    if (!UPTAddress[p].bits.present) continue;
+
+    unsigned int frame = get_frame(UPTAddress, p);
+    del_ss_pag(UPTAddress, p);
+    free_frame(frame);
   }
 
   //free_frame nomes els marca lliures, podem seguir fent servir la pila i el dir fins al task_switch
